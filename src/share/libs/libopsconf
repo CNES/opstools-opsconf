@@ -1,7 +1,24 @@
 #!/bin/bash
 
 OPSCONFVERSION=0.1
-#GITROOTPATH="$(git rev-parse --show-toplevel)"
+
+OPSCONF_BRANCH_WORK=work
+OPSCONF_BRANCH_QUALIF=qualification
+OPSCONF_BRANCH_VALID=master
+
+log_debug() {
+    if [ ! -z ${OPSCONF_DEBUG+x} ] ; then
+        echo "[DEBUG] $@"
+    fi
+}
+
+log_info() {
+    echo "[INFO] $@"
+}
+
+log_error() {
+    >&2 echo "[ERROR] $@"
+}
 
 _prepend_v2version() {
     # We expect the version to be either a number (like 9) or a v-number (like v9)
@@ -13,8 +30,73 @@ _prepend_v2version() {
     echo $version
 }
 
-is_git_repo() {
-    git rev-parse --is-inside-work-tree >/dev/null 2>&1 
+get_git_root() {
+    echo $(git rev-parse --show-toplevel)
+}
+
+get_current_branch() {
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    echo $branch
+}
+
+init_branches() {
+    touch $(get_git_root)/README.md
+    cat > $(get_git_root)/README.md << EOF
+# Readme
+This repository is managed by opsconf.
+EOF
+    log_debug "Created first README"
+    git add README.md >/dev/null
+    git commit -m "First commit" README.md &>/dev/null
+    log_debug "README commited"
+    for branch in $OPSCONF_BRANCH_VALID $OPSCONF_BRANCH_QUALIF $OPSCONF_BRANCH_WORK ; do
+        # si la branche existe
+        if git branch | grep $branch &>/dev/null ; then
+            git checkout $branch &>/dev/null
+            git push origin $branch &>/dev/null
+            log_debug "Branch updated: $branch"
+        else
+            git checkout -b $branch &>/dev/null
+            git push -u origin $branch &>/dev/null
+            log_debug "Branch created: $branch"
+        fi
+    done
+}
+
+is_current_branch_work() {
+    current_branch=$(get_current_branch)
+    if [ "$current_branch" = "$OPSCONF_BRANCH_WORK" ] ; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+is_current_branch_qualif() {
+    current_branch=$(get_current_branch)
+    if [ "$current_branch" = "$OPSCONF_BRANCH_QUALIF" ] ; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+is_current_branch_valid() {
+    current_branch=$(get_current_branch)
+    if [ "$current_branch" = "$OPSCONF_BRANCH_VALID" ] ; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+is_repo_empty() {
+    git rev-parse --verify HEAD >/dev/null 2>&1
+    if [ "$?" -eq "0" ] ; then 
+        return 1
+    else
+        return 0
+    fi
 }
 
 has_uptodate_hooks() {
@@ -22,7 +104,7 @@ has_uptodate_hooks() {
     for f in $(ls $HOOKDIR) ; do
         hookversion="$(grep OPSCONFVERSION $HOOKDIR/$f | cut -d'=' -f2)"
 
-        if [[ $hookversion != "" && s$hookversion != $OPSCONFVERSION ]]; then
+        if [[ $hookversion != "" && $hookversion != $OPSCONFVERSION ]]; then
             # One issue is enough to say if it has to be updated or not
             return 1
         fi
@@ -43,8 +125,8 @@ prepend_file_version() {
     commit_msg=$(cat $1)
     filetoadd=$(git diff --cached --name-only)
     if [[ $(head -n1 $1) = "" ]]; then
-        echo "[ERROR] Empty commit. Aborting"
-        exit 1
+        log_error "Empty commit. Aborting"
+        return 1
     fi
     previouscommitsubject=$(git log -n 1 --pretty=format:%s $filetoadd)
 
@@ -62,7 +144,33 @@ $commitversion: $commit_msg
 EOF
 }
 
-forbid_several_files_commit() {
+## CHECKS FOR HOOKS
+check_branch_work() {
+    if is_current_branch_work ; then
+        return 0
+    else
+        log_error "You cannot commit on this branch. Change to $OPSCONF_BRANCH_WORK"
+        return 1
+    fi
+}
+
+check_branch_uptodate() {
+    localbranch=$(get_current_branch)
+    git fetch
+    UPSTREAM=${1:-'@{u}'}
+    LOCAL=$(git rev-parse @)
+    REMOTE=$(git rev-parse "$UPSTREAM")
+    if [ $LOCAL = $REMOTE ] ; then
+        log_debug "Repository is up-to-date"
+        return 0
+    else
+        log_error "The repository is not in sync. Aborting. Run 'opsconf sync'"
+        git reset HEAD
+        return 1
+    fi
+}
+
+check_commit_unique_file() {
     # Control that a commit only changes one file at a time.
 
     if git rev-parse --verify HEAD >/dev/null 2>&1
@@ -76,14 +184,22 @@ forbid_several_files_commit() {
     changedfilecommand="git diff --cached --name-only $against"
     filenb=$($changedfilecommand | wc -l)
 
+    log_debug "Number of files to commit: $filenb"
     if [ $filenb -eq 0 ]; then
-        echo "[ERROR] Nothing to commit. Aborting."
-        exit 1
+        log_error "Nothing to commit. Aborting."
+        return 1
     elif [ $filenb -ne 1 ]; then
-        echo "[ERROR] You are commiting more than one file. Aborting."
+        log_error "You are commiting more than one file. Aborting."
         git reset HEAD $($changedfilecommand)
-        exit 1
+        return 1
+    else 
+        return 0
     fi
+}
+
+do_push() {
+    branch=$(get_current_branch)
+    git push origin $branch
 }
 
 retrieve_version() {
@@ -94,7 +210,7 @@ retrieve_version() {
     # @param $2: the file path to retrieve
     # @param $3: the version to retrieve (can be "latest")
     if [ "$#" -ne 3 ]; then
-         echo "[ERROR] This function expects 3 arguments"
+         log_error "This function expects 3 arguments"
          return 1
     fi
 
@@ -103,14 +219,17 @@ retrieve_version() {
     version=$3
 
     # get the last commit on the file, on our branch
-    current_hash=$(git log --format=%H -n1 HEAD -- file)
-    current_hash_subject=$(git log --format=%s -n1 HEAD -- $file)
-    current_hash_other=$(git log --format=%H --grep "$current_hash_subject" $branch -- $file)
+    current_hash=$(git log --format=%H -n1 HEAD -- $file)
+
     # if we don't get one, let's pretend it's HEAD,
     # it means the file does not exist yet in this branch
     if [[ $current_hash = "" ]]; then
+        log_debug "The file does not exist on this branch: $file"
         current_hash=$(git log --format=%H -n1 HEAD)
         current_hash_other=$(git log --diff-filter=A --format=%H -n1 $branch -- file)
+    else
+        current_hash_subject=$(git log --format=%s -n1 HEAD -- $file)
+        current_hash_other=$(git log --format=%H --grep "$current_hash_subject" $branch -- $file)
     fi
 
     if [[ $version = "latest" ]]; then
@@ -121,6 +240,7 @@ retrieve_version() {
         version_rev=$(git log --oneline ..$branch -- $file | grep -P "^[a-z0-9]{7} $version: " | cut -d' ' -f1) 
     fi
     revs_to_retrieve=$(git log --oneline --reverse $current_hash_other..$version_rev -- $file | cut -d' ' -f1)
+    log_debug "Cherry-picking commits: $revs_to_retrieve"
     git cherry-pick $revs_to_retrieve >/dev/null
     cat <<EOF >&1
 [INFO] Retrieved changes of $file: 
@@ -136,15 +256,16 @@ clean_local_changes() {
 rollback_to_version() {
     file=$1
     version=$(_prepend_v2version $2)
-    reason=$3
+    reason="$3"
     version_hash=$(git log --grep "$version: " --format=%H -- $file)
-    git diff HEAD..$version_hash -- $file | git apply
-    if [ "$?" -ne 0 ]; then
-        echo "[ERROR] Rollback failed. Aborting."
+    if ! git diff HEAD..$version_hash -- $file | git apply ; then
+        log_error "Rollback failed. Aborting."
         git reset HEAD -- $file
         return 1
     fi
-    git commit $file -m "$reason\n\nRolled-back to $version"
+    git commit $file -m "$reason
+
+Rolled-back to $version"
 }
 
 get_available_version() {
@@ -165,6 +286,12 @@ list_available_versions() {
     cat <<EOF >&1
 $(git log --format=%s $branch -- $file)
 EOF
+}
+
+list_all_versions() {
+    file=$1
+    branch="$OPSCONF_BRANCH_WORK"
+    list_available_versions $branch $file
 }
 
 list_current_versions() {

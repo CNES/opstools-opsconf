@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 
-HOOK_SRC=/usr/share/opsconf/hooks
+HOOK_SRC=$OPSCONF_DIR/githooks
 
 function _show_help() {
     exitcode=$1
@@ -11,8 +11,10 @@ EOF
 }
 
 function main() {
+    . $OPSCONF_DIR/libs/libopsconf
+
     if [ "$#" -ne 0 ]; then
-        subcommand=$1
+        subcommand="$1"
         shift
         case "$subcommand" in
             "--help")
@@ -30,13 +32,14 @@ function main() {
     fi
 
     GIT_ROOT=$(get_git_root)
-
-    if [ ! has_uptodate_hooks ] ; then
-        cp -f ${HOOK_SRC}/* ${GIT_ROOT}/.git/hooks/
-        log_info "Hooks updated"
-    else
-        log_info "The hooks are up-to-date"
+    if is_repo_empty ; then
+        log_info "Repo is empty, creating branches and first Readme"
+        init_branches
     fi
+
+    log_info "Updating hooks" 
+    cp -f ${HOOK_SRC}/* ${GIT_ROOT}/.git/hooks/
+    log_info "Hooks updated"
 }
 
-main $@
+main "$@"

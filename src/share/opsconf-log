@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+function _show_help() {
+    exitcode=$1
+    cat <<EOF
+opsconf log [--all] FILE: Check existing versions of file FILE in the current branch (or in all branches if "--all")
+EOF
+    exit $exitcode
+}
+
+function main() {
+    . $OPSCONF_DIR/libs/libopsconf
+    
+    all_versions=1
+
+    if [ $# -eq 1 ] ; then
+        file=$1
+    elif [ $# -eq 2 ] ; then
+        if [ "$1" = "--all"] ; then
+            all_versions=0
+            file="$2"
+        elif [ "$2" = "--all" ]; then
+            all_versions=0
+            file=$1
+        else
+            _show_help 1
+        fi
+    else
+        _show_help 1
+    fi
+
+    if [ $all_versions -eq 0 ] ; then
+        echo "On branch $OPSCONF_BRANCH_WORK:"
+        list_all_versions "$file"
+    else
+        echo "On branch $(get_current_branch):"
+        list_current_versions "$file"
+    fi
+}
+
+main "$@"

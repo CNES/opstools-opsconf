@@ -7,9 +7,15 @@
 #
 # OPSCONFVERSION=0.1
 
-. /usr/share/include/libopsconf
+if [ -z ${OPSCONF_DIR+x} ] ; then
+    . /usr/share/opsconf/libs/libopsconf
+else
+    . $OPSCONF_DIR/libs/libopsconf
+fi
+
+set -e # exit on first error
 
 # Redirect output to stderr.
 exec 1>&2
 
-forbid_several_files_commit
+do_push

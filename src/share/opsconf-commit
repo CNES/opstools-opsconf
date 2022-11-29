@@ -1,0 +1,77 @@
+#!/bin/sh -e
+
+_show_help() {
+    exitcode=$1
+    cat <<EOF
+opsconf commit -m MESSAGE FILE: Commits the single file FILE with the commit message MESSAGE
+opsconf commit -r -m MESSAGE DIRECTORY: Recursively commits the files contained in the DIRECTORY with the commit message MESSAGE
+EOF
+    exit $exitcode
+}
+
+commit_file() {
+    file="$1"
+    commit_msg="$2"
+    git add $file
+    log_debug "File added: \"$file\""
+    if [ "$commit_msg" = "" ]; then
+        git commit "$file"
+    else
+        git commit -m "$commit_msg" "$file"
+    fi
+    log_info "File commited: \"$file\""
+}
+
+main() {
+    . $OPSCONF_DIR/libs/libopsconf
+
+    if [ $# -eq 0 ] ; then
+        _show_help 1
+    fi
+    local recurse=1
+    local commit_msg=""
+    ## Traitement des arguments
+    while [ $# -ne 0 ] ; do
+        if [ $1 = "-m" ] ; then
+            commit_msg=$2
+            log_debug "Commit message: $commit_msg"
+            shift 2
+        elif [ $1 = "-r" ]; then
+            recurse=0
+            log_debug "Go recursive"
+            shift
+        else
+            file=$1
+            shift
+        fi
+    done
+    
+    # Le champs FILE est absolument nécessaire.
+    if [ -z $file ] ; then
+        _show_help 1
+    fi
+    
+    # Retirer tous les fichiers ajoutés: on fait tout via "commit"
+    git reset >/dev/null
+
+    ## Si recursif
+    if [ "$recurse" -eq 0 ]; then
+        # Soit on a un dossier
+        if [ -d "$file" ] ; then
+            # Dans ce cas on récurse sur les fichiers modifiés de ce dossier
+            subfiles=$(git diff --name-only "$file")
+
+            for f in $subfiles ; do
+                main -m "$commit_msg" "$f"
+            done
+        # Soit on a un fichier
+        elif [ -f "$file" ] ; then
+            commit_file "$file" "$commit_msg"
+        fi
+    # Si pas récursif, on se ramène au cas "fichier"
+    else
+        commit_file "$file" "$commit_msg"
+    fi
+}
+
+main "$@"

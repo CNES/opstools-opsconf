@@ -1,6 +1,8 @@
 #!/bin/bash
 
-OPSCONF_DIR="/usr/share/opsconf"
+if [ -z ${OPSCONF_DIR+x} ] ; then
+    export OPSCONF_DIR="/usr/share/opsconf"
+fi
 
 PROGRAMNAME=$(basename "$0")
 
@@ -29,33 +31,17 @@ EOF
     exit $exitcode
 }
 
-function _check_if_git_repo() {
-    if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-function _check_if_hooks_installed() {
-    return 0
-}
-
-function log_error() {
-    >&2 echo "[ERROR] $@"
-}
-
 function _is_opsconf_repo() {
     # Check that this is a git repo and that the hooks are installed
     # If the hooks are missing, opsconf won't work correctly, so we abort
-    if [[ ! $(_check_if_git_repo) || ! $(_check_if_hooks_installed) ]] ; then
+    if [[ ! $(is_git_repo) || ! $(has_uptodate_hooks) ]] ; then
         log_error "This folder is not a git repository or is missing its hooks. Run 'opsconf init'."
         return 1
     fi
 }
 
 function main() {
-    . /usr/share/include/libopsconf
+    . $OPSCONF_DIR/libs/libopsconf 
 
     if [ "$#" -eq 0 ]; then
         _show_help 1
@@ -65,25 +51,27 @@ function main() {
     shift
     case "$subcommand" in
         "init" )
-            opsconf-init $@ ;;
+            $OPSCONF_DIR/opsconf-init "$@" ;;
         "sync")
-            opsconf-sync $@ ;;
+            $OPSCONF_DIR/opsconf-sync "$@" ;;
         "commit")
-            opsconf-commit $@ ;;
+            $OPSCONF_DIR/opsconf-commit "$@" ;;
         "log")
-            opsconf-log $@ ;;
+            $OPSCONF_DIR/opsconf-log "$@" ;;
         "diff")
-            opsconf-diff $@ ;;
+            $OPSCONF_DIR/opsconf-diff "$@" ;;
         "rollback")
-            opsconf-rollback $@ ;;
+            $OPSCONF_DIR/opsconf-rollback "$@" ;;
+        "qualify")
+            $OPSCONF_DIR/opsconf-qualify "$@" ;;
         "validate")
-            echo "validate $@" ;;
+            $OPSCONF_DIR/opsconf-validate "$@" ;;
         "tag")
-            echo "tag $@" ;;
+            $OPSCONF_DIR/opsconf-tag "$@" ;;
         "liststates")
-            echo "liststate $@" ;;
+            $OPSCONF_DIR/opsconf-liststates "$@" ;;
         "checkout")
-            echo "checkout $@" ;;
+            $OPSCONF_DIR/opsconf-checkout "$@" ;;
         "help")
             _show_help 0 ;;
         *)
@@ -92,4 +80,4 @@ function main() {
 
 }
 
-main $@
+main "$@"

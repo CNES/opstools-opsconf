@@ -1,0 +1,30 @@
+#!/bin/bash -e
+
+function _show_help() {
+    exitcode=$1
+    cat <<EOF
+opsconf rollback -m REASON FILE VERSION: Create a new version of FILE with previous version VERSION,
+                                         with the justification REASON
+EOF
+    exit $exitcode
+}
+
+function main() {
+    . $OPSCONF_DIR/libs/libopsconf
+    
+    if [ $# -eq 4 ] ; then
+        if ! [ "$1" = "-m" ] ; then
+            _show_help 1
+        fi
+        reason="$2"
+        file="$3"
+        version="$4"
+    else
+        _show_help 1
+    fi
+    check_branch_work
+    check_branch_uptodate
+    rollback_to_version "$file" "$version" "$reason"
+}
+
+main "$@"
