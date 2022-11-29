@@ -1,0 +1,18 @@
+#!/bin/bash
+
+function _show_help() {
+    exitcode=$1
+    cat <<EOF
+opsconf diff FILE VERSION_OLD VERSION_NEW: Show the difference of FILE between version VERSION_OLD and VERSION_NEW
+EOF
+    exit $exitcode
+}
+
+function main() {
+    file=$1
+    v1=$2
+    v2=$3  # TODO: v3 is optional => HEAD
+    diff_between_versions $file $v1 $v2
+}
+
+main $@

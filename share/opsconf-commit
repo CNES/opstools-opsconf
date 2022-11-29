@@ -1,0 +1,47 @@
+#!/bin/bash
+
+function _show_help() {
+    exitcode=$1
+    cat <<EOF
+opsconf commit -m MESSAGE FILE: Commits the single file FILE with the commit message MESSAGE
+opsconf commit -r -m MESSAGE DIRECTORY: Recursively commits the files contained in the DIRECTORY with the commit message MESSAGE
+EOF
+    exit $exitcode
+}
+
+#TODO: gerer cas pas de message, et cas pas recursif
+function main() {
+    if [ $# -eq 0 ] ; then
+        _show_help 1
+    else
+        local recurse=1
+        while [ $# -ne 0 ] ; do
+            if [ $1 = "-m" ] ; then
+                local commit_msg=$2
+                shift 2
+            elif [ $1 = "-r" ]; then
+                recurse=0
+                shift
+            else
+                file=$1
+                shift
+            fi
+        done
+
+        if [ $recurse -eq 0 ]; then
+            if [ -d $file ] ; then
+                for f in $(ls $file) ; do
+                    main -r -m $commit_msg $file/$f
+                done
+            elif [ -f $file ] ; then
+                if [ $commit_msg = "" ]; then
+                    git commit $file
+                else
+                    git commit -m $commit_msg $file
+                fi
+            fi
+        fi
+    fi
+}
+
+main $@

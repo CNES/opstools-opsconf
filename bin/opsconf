@@ -1,0 +1,95 @@
+#!/bin/bash
+
+OPSCONF_DIR="/usr/share/opsconf"
+
+PROGRAMNAME=$(basename "$0")
+
+function _show_help() {
+    exitcode=$1
+    cat <<EOF
+$PROGRAMNAME: Configuration management tool for operational data.
+
+Arguments (to work on files)
+    sync: synchronize local and distant repositories
+    commit: commit changes to a data
+    log: show changelogs of a file
+    diff: show difference between two versions of a file
+    rollback: rollback a file to a given versions
+    validate: mark a file version as validate of production use
+
+Arguments (to work on the repository)
+    init: initialize the local repository
+    liststates: list the repository states
+    checkout: get to a given repository state
+    tag: label the current state of the whole repository
+
+Other possible arguments
+    help: show this help
+EOF
+    exit $exitcode
+}
+
+function _check_if_git_repo() {
+    if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+function _check_if_hooks_installed() {
+    return 0
+}
+
+function log_error() {
+    >&2 echo "[ERROR] $@"
+}
+
+function _is_opsconf_repo() {
+    # Check that this is a git repo and that the hooks are installed
+    # If the hooks are missing, opsconf won't work correctly, so we abort
+    if [[ ! $(_check_if_git_repo) || ! $(_check_if_hooks_installed) ]] ; then
+        log_error "This folder is not a git repository or is missing its hooks. Run 'opsconf init'."
+        return 1
+    fi
+}
+
+function main() {
+    . /usr/share/include/libopsconf
+
+    if [ "$#" -eq 0 ]; then
+        _show_help 1
+    fi
+
+    subcommand=$1
+    shift
+    case "$subcommand" in
+        "init" )
+            opsconf-init $@ ;;
+        "sync")
+            opsconf-sync $@ ;;
+        "commit")
+            opsconf-commit $@ ;;
+        "log")
+            opsconf-log $@ ;;
+        "diff")
+            opsconf-diff $@ ;;
+        "rollback")
+            opsconf-rollback $@ ;;
+        "validate")
+            echo "validate $@" ;;
+        "tag")
+            echo "tag $@" ;;
+        "liststates")
+            echo "liststate $@" ;;
+        "checkout")
+            echo "checkout $@" ;;
+        "help")
+            _show_help 0 ;;
+        *)
+            _show_help 1 ;;
+    esac
+
+}
+
+main $@

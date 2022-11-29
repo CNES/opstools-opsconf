@@ -1,0 +1,42 @@
+#!/bin/bash
+
+HOOK_SRC=/usr/share/opsconf/hooks
+
+function _show_help() {
+    exitcode=$1
+    cat <<EOF
+opsconf init: initialize (or re-initialize the repository)
+EOF
+    exit $exitcode
+}
+
+function main() {
+    if [ "$#" -ne 0 ]; then
+        subcommand=$1
+        shift
+        case "$subcommand" in
+            "--help")
+                _show_help 0 ;;
+            *)
+                _show_help 0 ;;
+        esac
+    fi
+
+    if [ ! is_git_repo ] ; then
+        git init
+        log_info "Git repository initialized: $PWD"
+    else
+        log_info "I am already in a git repository, moving forwards"
+    fi
+
+    GIT_ROOT=$(get_git_root)
+
+    if [ ! has_uptodate_hooks ] ; then
+        cp -f ${HOOK_SRC}/* ${GIT_ROOT}/.git/hooks/
+        log_info "Hooks updated"
+    else
+        log_info "The hooks are up-to-date"
+    fi
+}
+
+main $@
