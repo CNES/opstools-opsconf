@@ -46,8 +46,10 @@ init_branches() {
 This repository is managed by opsconf.
 EOF
     log_debug "Created first README"
-    git add README.md >/dev/null
-    git commit -m "First commit" README.md &>/dev/null
+    touch $(get_git_root)/.opsconf
+    log_debug "Created .opsconf file"
+    git add README.md .opsconf >/dev/null
+    git commit -m "First commit" &>/dev/null
     log_debug "README commited"
     for branch in $OPSCONF_BRANCH_VALID $OPSCONF_BRANCH_QUALIF $OPSCONF_BRANCH_WORK ; do
         # si la branche existe
