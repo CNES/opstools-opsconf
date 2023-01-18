@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 if [ -z ${OPSCONF_DIR+x} ] ; then
     export OPSCONF_DIR="/usr/share/opsconf"
