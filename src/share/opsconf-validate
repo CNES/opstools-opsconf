@@ -1,6 +1,4 @@
-#!/bin/bash -e
-
-function _show_help() {
+_show_help() {
     exitcode=$1
     cat <<EOF
 opsconf validate FILE VERSION: Set the version VERSION of the file FILE as valid.
@@ -8,9 +6,7 @@ EOF
     exit $exitcode
 }
 
-function main() {
-    . $OPSCONF_DIR/libs/libopsconf
-    
+run_cmd() {
     if [ $# -eq 2 ] ; then
         file=$1
         version=$2
@@ -25,5 +21,3 @@ function main() {
 
     retrieve_version "$OPSCONF_BRANCH_WORK" "$file" "$version"
 }
-
-main "$@"

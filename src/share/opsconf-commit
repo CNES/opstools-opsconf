@@ -1,5 +1,3 @@
-#!/bin/sh -e
-
 _show_help() {
     exitcode=$1
     cat <<EOF
@@ -22,9 +20,7 @@ commit_file() {
     log_info "File commited: \"$file\""
 }
 
-main() {
-    . $OPSCONF_DIR/libs/libopsconf
-
+run_cmd() {
     if [ $# -eq 0 ] ; then
         _show_help 1
     fi
@@ -62,7 +58,7 @@ main() {
             subfiles=$(git diff --name-only "$file")
 
             for f in $subfiles ; do
-                main -m "$commit_msg" "$f"
+                run_cmd -m "$commit_msg" "$f"
             done
         # Soit on a un fichier
         elif [ -f "$file" ] ; then
@@ -73,5 +69,3 @@ main() {
         commit_file "$file" "$commit_msg"
     fi
 }
-
-main "$@"

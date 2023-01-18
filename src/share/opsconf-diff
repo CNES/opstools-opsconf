@@ -1,6 +1,4 @@
-#!/bin/bash -e
-
-function _show_help() {
+_show_help() {
     exitcode=$1
     cat <<EOF
 opsconf diff FILE VERSION_OLD VERSION_NEW: Show the difference of FILE between version VERSION_OLD and VERSION_NEW
@@ -8,9 +6,7 @@ EOF
     exit $exitcode
 }
 
-function main() {
-    . $OPSCONF_DIR/libs/libopsconf
-
+run_cmd() {
     if [ $# -eq 3 ]; then
         file="$1"
         v1="$2"
@@ -21,5 +17,3 @@ function main() {
 
     diff_between_versions "$file" "$v1" "$v2"
 }
-
-main "$@"

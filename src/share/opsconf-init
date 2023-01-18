@@ -1,8 +1,6 @@
-#!/bin/bash -e
-
 HOOK_SRC=$OPSCONF_DIR/githooks
 
-function _show_help() {
+_show_help() {
     exitcode=$1
     cat <<EOF
 opsconf init: initialize (or re-initialize the repository)
@@ -10,9 +8,7 @@ EOF
     exit $exitcode
 }
 
-function main() {
-    . $OPSCONF_DIR/libs/libopsconf
-
+run_cmd() {
     if [ "$#" -ne 0 ]; then
         subcommand="$1"
         shift
@@ -38,8 +34,10 @@ function main() {
     fi
 
     log_info "Updating hooks" 
-    cp -f ${HOOK_SRC}/* ${GIT_ROOT}/.git/hooks/
+    HOOK_DST="${GIT_ROOT}/.git/hooks"
+    for hook in $(ls $HOOK_SRC) ; do 
+    	cp -f ${HOOK_SRC}/${hook} ${HOOK_DST}/
+        chmod +x  ${HOOK_DST}/${hook}
+    done
     log_info "Hooks updated"
 }
-
-main "$@"

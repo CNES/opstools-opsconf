@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
-export PATH=$PATH:"$ROOT_DIR/src/bin"
+export PATH="$ROOT_DIR/src/bin:$PATH"
 export OPSCONF_DIR="$ROOT_DIR/src/share"
 
 WORKSPACE="$ROOT_DIR/tests_exec_workspace"

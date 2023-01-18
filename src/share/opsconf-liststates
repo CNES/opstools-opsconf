@@ -1,0 +1,3 @@
+run_cmd() {
+    log_error "NOT IMPLEMENTED YET"
+}

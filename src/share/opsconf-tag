@@ -1,0 +1,3 @@
+run_cmd() {
+    git tag $@
+}

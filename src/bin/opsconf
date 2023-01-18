@@ -13,11 +13,12 @@ $PROGRAMNAME: Configuration management tool for operational data.
 
 Arguments (to work on files)
     sync: synchronize local and distant repositories
-    commit: commit changes to a data
+    commit: commit changes to a file
     log: show changelogs of a file
     diff: show difference between two versions of a file
     rollback: rollback a file to a given versions
-    validate: mark a file version as validate of production use
+    qualify: mark a file version as ready for qualification
+    validate: mark a file version as validated of production use
 
 Arguments (to work on the repository)
     init: initialize the local repository
@@ -51,32 +52,34 @@ function main() {
     shift
     case "$subcommand" in
         "init" )
-            $OPSCONF_DIR/opsconf-init "$@" ;;
+            . $OPSCONF_DIR/opsconf-init ;;
         "sync")
-            $OPSCONF_DIR/opsconf-sync "$@" ;;
+            . $OPSCONF_DIR/opsconf-sync ;;
         "commit")
-            $OPSCONF_DIR/opsconf-commit "$@" ;;
+            . $OPSCONF_DIR/opsconf-commit ;;
         "log")
-            $OPSCONF_DIR/opsconf-log "$@" ;;
+            . $OPSCONF_DIR/opsconf-log ;;
         "diff")
-            $OPSCONF_DIR/opsconf-diff "$@" ;;
+            . $OPSCONF_DIR/opsconf-diff ;;
         "rollback")
-            $OPSCONF_DIR/opsconf-rollback "$@" ;;
+            . $OPSCONF_DIR/opsconf-rollback ;;
         "qualify")
-            $OPSCONF_DIR/opsconf-qualify "$@" ;;
+            . $OPSCONF_DIR/opsconf-qualify ;;
         "validate")
-            $OPSCONF_DIR/opsconf-validate "$@" ;;
+            . $OPSCONF_DIR/opsconf-validate ;;
         "tag")
-            $OPSCONF_DIR/opsconf-tag "$@" ;;
+            . $OPSCONF_DIR/opsconf-tag ;;
         "liststates")
-            $OPSCONF_DIR/opsconf-liststates "$@" ;;
+            . $OPSCONF_DIR/opsconf-liststates ;;
         "checkout")
-            $OPSCONF_DIR/opsconf-checkout "$@" ;;
+            . $OPSCONF_DIR/opsconf-checkout ;;
         "help")
             _show_help 0 ;;
         *)
             _show_help 1 ;;
     esac
+
+    run_cmd "$@" 
 
 }
 
