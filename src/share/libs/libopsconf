@@ -64,6 +64,10 @@ EOF
     done
 }
 
+is_git_repo() {
+    git rev-parse --is-inside-work-tree &> /dev/null
+}
+
 is_current_branch_work() {
     current_branch=$(get_current_branch)
     if [ "$current_branch" = "$OPSCONF_BRANCH_WORK" ] ; then

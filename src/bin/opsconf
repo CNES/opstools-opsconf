@@ -35,7 +35,7 @@ EOF
 function _is_opsconf_repo() {
     # Check that this is a git repo and that the hooks are installed
     # If the hooks are missing, opsconf won't work correctly, so we abort
-    if [[ ! $(is_git_repo) || ! $(has_uptodate_hooks) ]] ; then
+    if [[ ! is_git_repo || ! has_uptodate_hooks ]] ; then
         log_error "This folder is not a git repository or is missing its hooks. Run 'opsconf init'."
         return 1
     fi
