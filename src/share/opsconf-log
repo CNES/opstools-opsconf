@@ -28,10 +28,14 @@ run_cmd() {
     fi
 
     if [ $all_versions -eq 0 ] ; then
-        echo "On branch $OPSCONF_BRANCH_WORK:"
+        if [ -t 1 ] ; then
+            echo "On branch $OPSCONF_BRANCH_WORK:"
+        fi
         list_all_versions "$file"
     else
-        echo "On branch $(get_current_branch):"
+        if [ -t 1 ] ; then
+            echo "On branch $(get_current_branch):"
+        fi
         list_current_versions "$file"
     fi
 }

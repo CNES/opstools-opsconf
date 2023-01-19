@@ -6,7 +6,7 @@ fi
 
 PROGRAMNAME=$(basename "$0")
 
-function _show_help() {
+_show_help() {
     exitcode=$1
     cat <<EOF
 $PROGRAMNAME: Configuration management tool for operational data.
@@ -32,16 +32,17 @@ EOF
     exit "$exitcode"
 }
 
-function _is_opsconf_repo() {
+_is_opsconf_repo() {
     # Check that this is a git repo and that the hooks are installed
     # If the hooks are missing, opsconf won't work correctly, so we abort
-    if [[ ! is_git_repo || ! has_uptodate_hooks ]] ; then
-        log_error "This folder is not a git repository or is missing its hooks. Run 'opsconf init'."
+    if is_git_repo && has_uptodate_hooks ; then
+        return 0
+    else
         return 1
     fi
 }
 
-function main() {
+main() {
     . $OPSCONF_DIR/libs/libopsconf 
 
     if [ "$#" -eq 0 ]; then
@@ -79,8 +80,12 @@ function main() {
             _show_help 1 ;;
     esac
 
-    run_cmd "$@" 
+    if ! _is_opsconf_repo && [ "$subcommand" != "init" ]; then
+        log_error "This folder is not a git repository or is missing its hooks. Run 'opsconf init'."
+        exit 1
+    fi
 
+    run_cmd "$@" 
 }
 
 main "$@"

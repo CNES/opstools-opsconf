@@ -6,6 +6,8 @@ OPSCONF_BRANCH_WORK=work
 OPSCONF_BRANCH_QUALIF=qualification
 OPSCONF_BRANCH_VALID=master
 
+OPSCONF_HOOKDIR=$OPSCONF_DIR/githooks
+
 log_debug() {
     if [ ! -z "${OPSCONF_DEBUG+x}" ] ; then
         echo "[DEBUG] $*"
@@ -106,8 +108,14 @@ is_repo_empty() {
 
 has_uptodate_hooks() {
     HOOKDIR="$(git rev-parse --git-dir)/hooks"
-    for f in "$HOOKDIR"/* ; do
-        hookversion=$(grep OPSCONFVERSION "$f" | cut -d'=' -f2)
+    for hook_src in "$OPSCONF_HOOKDIR"/* ; do
+        deployed_hook="$HOOKDIR/$(basename "$hook_src")" 
+        # If one hook from the share dir is not in the hooks
+        if [ ! -f "$deployed_hook" ]; then
+            return 1
+        fi
+        # If it is there but with wrong version
+        hookversion=$(grep OPSCONFVERSION "$deployed_hook" | cut -d'=' -f2)
 
         if [[ "$hookversion" != "" && "$hookversion" != "$OPSCONFVERSION" ]]; then
             # One issue is enough to say if it has to be updated or not
@@ -218,7 +226,7 @@ retrieve_version() {
          return 1
     fi
 
-    branch=$1
+    src_branch=$1
     file=$2
     version=$3
 
@@ -229,25 +237,26 @@ retrieve_version() {
     # it means the file does not exist yet in this branch
     if [[ $current_hash = "" ]]; then
         log_debug "The file does not exist on this branch: $file"
-        current_hash=$(git log --format=%H -n1 HEAD)
-        current_hash_other=$(git log --diff-filter=A --format=%H -n1 "$branch" -- "$file")
+        current_hash=$(git log --format=%h -n1 HEAD)
+        current_hash_other="$(git log --diff-filter=A --format=%H -n1 "$src_branch" -- "$file")^"
     else
         current_hash_subject=$(git log --format=%s -n1 HEAD -- "$file")
-        current_hash_other=$(git log --format=%H --grep "$current_hash_subject" "$branch" -- "$file")
+        current_hash_other=$(git log --format=%h --grep "$current_hash_subject" "$src_branch" -- "$file")
     fi
 
-    if [[ $version = "latest" ]]; then
-        version_rev="$branch"
+    if [ "$version" = "latest" ]; then
+        version_rev="$src_branch"
     else
         version=$(_prepend_v2version "$version")
     
-        version_rev=$(git log --oneline .."$branch" -- "$file" | grep -P "^[a-z0-9]{7} $version: " | cut -d' ' -f1) 
+        version_rev=$(git log --grep "^$version: " --format=%h .."$src_branch" -- "$file")
     fi
-    revs_to_retrieve=$(git log --oneline --reverse "$current_hash_other".."$version_rev" -- "$file" | cut -d' ' -f1)
+    revs_to_retrieve=$(git log --format=%h --reverse "$current_hash_other".."$version_rev" -- "$file" | tr '\n' ' ')
     log_debug "Cherry-picking commits: $revs_to_retrieve"
     for rev in $revs_to_retrieve ; do
         git cherry-pick "$rev" >/dev/null
     done
+    git push origin "$(get_current_branch)"
     cat <<EOF >&1
 [INFO] Retrieved changes of "$file": 
 $(git log --format=%s --reverse "$current_hash"..HEAD -- "$file" | sed -e "s/^/    /")
@@ -263,7 +272,7 @@ rollback_to_version() {
     file=$1
     version=$(_prepend_v2version "$2")
     reason="$3"
-    version_hash=$(git log --grep "$version: " --format=%H -- "$file")
+    version_hash=$(git log --grep "^$version: " --format=%H -- "$file")
     if ! git diff HEAD.."$version_hash" -- "$file" | git apply ; then
         log_error "Rollback failed. Aborting."
         git reset HEAD -- "$file"
@@ -289,9 +298,13 @@ get_current_version() {
 list_available_versions() {
     branch=$1
     file=$2
-    cat <<EOF >&1
-$(git log --format=%s "$branch" -- "$file")
+    raw_logs=$(git log --format=%s "$branch" -- "$file")
+    if [ -n "${raw_logs}" ] ; then
+        formated_logs=$(echo "${raw_logs}" | sed 's,\([[:digit:]]\+\): ,\1§,' | column -t -s§ -o' | ')
+        cat <<EOF >&1
+${formated_logs}
 EOF
+    fi
 }
 
 list_all_versions() {
@@ -311,7 +324,7 @@ diff_between_versions() {
     v1=$(_prepend_v2version "$2")
     v2=$(_prepend_v2version "$3")
 
-    h1=$(git log --grep "$v1: " --format=%H -- "$file")
-    h2=$(git log --grep "$v2: " --format=%H -- "$file")
+    h1=$(git log --grep "^$v1: " --format=%H -- "$file")
+    h2=$(git log --grep "^$v2: " --format=%H -- "$file")
     git diff "$h1".."$h2" -- "$file"
 }

@@ -2,20 +2,30 @@
 
 . env.sh
 
-log_debug "Initialize repo"
 cd "$REPO_LOCAL"
-opsconf init
+log_debug "Initialize repo"
+
 git config --local user.email "testing@test.tld"
 git config --local user.name "The Tester"
 
-log_test "Hooks are correctly deployed?"
+log_test "Cannot run opsconf command before init."
+if ! opsconf checkout master ; then
+   log_result "OK"
+else
+   log_result "KO"
+fi
+
+log_info "Initialize opsconf"
+opsconf init
+
+log_test "Hooks are correctly deployed."
 result=0
-for f in $(ls "$OPSCONF_DIR/githooks"); do
-    lresult=$(check_file_equal "$OPSCONF_DIR/githooks/$f" "$REPO_LOCAL/.git/hooks/$f")
+for f in "$OPSCONF_DIR"/githooks/* ; do
+    lresult=$(check_file_equal "$f" "$REPO_LOCAL/.git/hooks/$(basename "$f")")
     result=$((result+lresult))
 done
 
-if [ $result -eq 0 ]; then
+if [ "$result" -eq 0 ]; then
     log_result "OK"
 else
     log_result "KO"

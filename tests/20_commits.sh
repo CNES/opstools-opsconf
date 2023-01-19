@@ -2,8 +2,12 @@
 
 . env.sh
 
-cd "$REPO_LOCAL"
-ONE_FILE=one_file.txt
+CURRENT_TEST=20_commits
+
+pushd "$REPO_LOCAL"
+mkdir ${CURRENT_TEST}
+
+ONE_FILE=${CURRENT_TEST}/one_file.txt
 touch "$ONE_FILE"
 opsconf commit -m "Create $ONE_FILE" "$ONE_FILE"
 lorem_ipsum >> "$ONE_FILE"
@@ -27,7 +31,7 @@ else
 fi
 
 log_test "Status is clean after commit"
-if [ $(git status -s | wc -l) -eq 0 ]; then
+if [ "$(git status -s | wc -l)" -eq 0 ]; then
     log_result "OK"
 else
     log_result "KO"
@@ -47,16 +51,17 @@ fi
 #
 
 VERSION_MAX=200
-FILE=file_lotofchanges.txt
+FILE=${CURRENT_TEST}/file_lotofchanges.txt
 log_test "Create $VERSION_MAX versions"
 for k in $(seq 1 ${VERSION_MAX}) ; do
-    echo -ne $k\\r
-    echo $k > $FILE
+    echo -ne "$k\\r"
+    echo "$k" > "$FILE"
     opsconf commit -m "changing content $((k-1)) by $k" $FILE &>/dev/null
 done
-if [ $(git log -n1 --format=%s -- $FILE | cut -d: -f1) = "v${VERSION_MAX}" ]; then
+if [ "$(git log -n1 --format=%s -- $FILE | cut -d: -f1)" = "v${VERSION_MAX}" ]; then
     log_result "OK"
 else
     log_result "KO"
 fi
 
+popd
