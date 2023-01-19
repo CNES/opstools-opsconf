@@ -1,3 +1,5 @@
+#!/bin/bash -e
+
 run_cmd() {
     git checkout "$@"
 }

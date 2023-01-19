@@ -1,16 +1,18 @@
+#!/bin/bash -e
+
 _show_help() {
     exitcode=$1
     cat <<EOF
 opsconf commit -m MESSAGE FILE: Commits the single file FILE with the commit message MESSAGE
 opsconf commit -r -m MESSAGE DIRECTORY: Recursively commits the files contained in the DIRECTORY with the commit message MESSAGE
 EOF
-    exit $exitcode
+    exit "$exitcode"
 }
 
 commit_file() {
     file="$1"
     commit_msg="$2"
-    git add $file
+    git add "$file"
     log_debug "File added: \"$file\""
     if [ "$commit_msg" = "" ]; then
         git commit "$file"
@@ -28,11 +30,11 @@ run_cmd() {
     local commit_msg=""
     ## Traitement des arguments
     while [ $# -ne 0 ] ; do
-        if [ $1 = "-m" ] ; then
+        if [ "$1" = "-m" ] ; then
             commit_msg=$2
             log_debug "Commit message: $commit_msg"
             shift 2
-        elif [ $1 = "-r" ]; then
+        elif [ "$1" = "-r" ]; then
             recurse=0
             log_debug "Go recursive"
             shift
@@ -43,7 +45,7 @@ run_cmd() {
     done
     
     # Le champs FILE est absolument nécessaire.
-    if [ -z $file ] ; then
+    if [ -z "$file" ] ; then
         _show_help 1
     fi
     

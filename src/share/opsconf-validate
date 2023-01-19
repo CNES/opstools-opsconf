@@ -1,9 +1,11 @@
+#!/bin/bash -e
+
 _show_help() {
     exitcode=$1
     cat <<EOF
 opsconf validate FILE VERSION: Set the version VERSION of the file FILE as valid.
 EOF
-    exit $exitcode
+    exit "$exitcode"
 }
 
 run_cmd() {

@@ -8,10 +8,10 @@
 #
 # OPSCONFVERSION=0.1
 
-if [ -z ${OPSCONF_DIR+x} ] ; then
+if [ -z "${OPSCONF_DIR+x}" ] ; then
     . /usr/share/opsconf/libs/libopsconf
 else
-    . $OPSCONF_DIR/libs/libopsconf
+    . "$OPSCONF_DIR/libs/libopsconf"
 fi
 
 set -e # Exit on first error
@@ -19,5 +19,7 @@ set -e # Exit on first error
 # Redirect output to stderr.
 exec 1>&2
 
-prepend_file_version $1
+log_debug "githook::commit-msg start"
+prepend_file_version "$1"
+log_debug "githook::commit-msg end"
 

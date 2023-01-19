@@ -1,14 +1,16 @@
+#!/bin/bash -e
+
 _show_help() {
     exitcode=$1
     cat <<EOF
 opsconf sync [REMOTE]: synchronize the local and distant repositories (origin by default)
 EOF
-    exit $exitcode
+    exit "$exitcode"
 }
 
 run_cmd() {
     if [ $# -eq 1 ] ; then
-        if [ $1 = "help" ]; then
+        if [ "$1" = "help" ]; then
             _show_help 0
         else
             remote="$1"
@@ -20,19 +22,19 @@ run_cmd() {
     branch=$(get_current_branch)
 
     # Synchronize with remote
-    git fetch $remote $branch
+    git fetch "$remote" "$branch"
 
     log_debug "Comparing $remote/$branch to $branch"
 
     # Check if the merge would be fast-forward, to merge (fetch+merge=pull)
-    if $(git merge-base --is-ancestor $branch $remote/$branch) ; then
+    if git merge-base --is-ancestor "$branch" "$remote/$branch" ; then
         log_info "Local is behind the remote repository"
-        git merge $remote/$branch --ff-only
+        git merge "$remote/$branch" --ff-only
         log_info "Local was updated"
     # Or the reverse (so push)
-    elif $(git merge-base --is-ancestor $remote/$branch $branch) ; then
+    elif git merge-base --is-ancestor "$remote/$branch" "$branch" ; then
         log_info "Local is ahead the remote repository"
-        git push $remote $branch
+        git push "$remote" "$branch"
         log_info "Remote was updated"
     else
         log_error "Local and remote branchs have diverged. Call an expert!"

@@ -1,3 +1,5 @@
+#!/bin/bash -e
+
 HOOK_SRC=$OPSCONF_DIR/githooks
 
 _show_help() {
@@ -5,7 +7,7 @@ _show_help() {
     cat <<EOF
 opsconf init: initialize (or re-initialize the repository)
 EOF
-    exit $exitcode
+    exit "$exitcode"
 }
 
 run_cmd() {
@@ -20,7 +22,7 @@ run_cmd() {
         esac
     fi
 
-    if [ ! is_git_repo ] ; then
+    if ! is_git_repo ; then
         git init
         log_info "Git repository initialized: $PWD"
     else
@@ -35,9 +37,9 @@ run_cmd() {
 
     log_info "Updating hooks" 
     HOOK_DST="${GIT_ROOT}/.git/hooks"
-    for hook in $(ls $HOOK_SRC) ; do 
-    	cp -f ${HOOK_SRC}/${hook} ${HOOK_DST}/
-        chmod +x  ${HOOK_DST}/${hook}
+    for hook in "$HOOK_SRC"/* ; do 
+    	cp -f "${hook}" "${HOOK_DST}/"
+        chmod +x "${HOOK_DST}/$(basename "${hook}")"
     done
     log_info "Hooks updated"
 }

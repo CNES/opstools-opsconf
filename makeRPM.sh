@@ -8,7 +8,7 @@ SRPMS=build/SRPMS
 
 VERSION="$(git describe 2>/dev/null || echo 0.0 | sed 's/-/_/g')"
 
-if [ -z $RELEASE ] ; then
+if [ -z "$RELEASE" ] ; then
     RELEASE=1
 fi
 
@@ -16,7 +16,7 @@ fi
 mkdir -p $BUILD $RPMS $SOURCES $SPECS $SRPMS
 
 # Archive sources in SOURCES dir
-tar czf $SOURCES/opsconf-$VERSION.tar.gz --transform "s,^\./,opsconf-$VERSION/," ./src/
+tar czf "$SOURCES/opsconf-$VERSION.tar.gz" --transform "s,^\./,opsconf-$VERSION/," ./src/
 
 cp opsconf.spec $SPECS/
 

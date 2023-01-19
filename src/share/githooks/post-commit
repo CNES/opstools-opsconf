@@ -7,10 +7,10 @@
 #
 # OPSCONFVERSION=0.1
 
-if [ -z ${OPSCONF_DIR+x} ] ; then
+if [ -z "${OPSCONF_DIR+x}" ] ; then
     . /usr/share/opsconf/libs/libopsconf
 else
-    . $OPSCONF_DIR/libs/libopsconf
+    . "$OPSCONF_DIR/libs/libopsconf"
 fi
 
 set -e # exit on first error
@@ -18,4 +18,6 @@ set -e # exit on first error
 # Redirect output to stderr.
 exec 1>&2
 
+log_debug "githook::post-commit start"
 do_push
+log_debug "githook::post-commit end"

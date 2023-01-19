@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-if [ -z ${OPSCONF_DIR+x} ] ; then
+if [ -z "${OPSCONF_DIR+x}" ] ; then
     export OPSCONF_DIR="/usr/share/opsconf"
 fi
 
@@ -29,7 +29,7 @@ Arguments (to work on the repository)
 Other possible arguments
     help: show this help
 EOF
-    exit $exitcode
+    exit "$exitcode"
 }
 
 function _is_opsconf_repo() {

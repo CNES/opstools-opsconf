@@ -7,17 +7,17 @@ OPSCONF_BRANCH_QUALIF=qualification
 OPSCONF_BRANCH_VALID=master
 
 log_debug() {
-    if [ ! -z ${OPSCONF_DEBUG+x} ] ; then
-        echo "[DEBUG] $@"
+    if [ ! -z "${OPSCONF_DEBUG+x}" ] ; then
+        echo "[DEBUG] $*"
     fi
 }
 
 log_info() {
-    echo "[INFO] $@"
+    echo "[INFO] $*"
 }
 
 log_error() {
-    >&2 echo "[ERROR] $@"
+    >&2 echo "[ERROR] $*"
 }
 
 _prepend_v2version() {
@@ -27,31 +27,30 @@ _prepend_v2version() {
     if [[ $version =~ $number_regexp ]]; then
         version=v$version
     fi
-    echo $version
+    echo "$version"
 }
 
 get_git_root() {
-    echo $(git rev-parse --show-toplevel)
+    git rev-parse --show-toplevel
 }
 
 get_current_branch() {
-    branch=$(git rev-parse --abbrev-ref HEAD)
-    echo $branch
+    git rev-parse --abbrev-ref HEAD
 }
 
 init_branches() {
-    touch $(get_git_root)/README.md
-    cat > $(get_git_root)/README.md << EOF
+    touch "$(get_git_root)/README.md"
+    cat > "$(get_git_root)/README.md" << EOF
 # Readme
 This repository is managed by opsconf.
 EOF
     log_debug "Created first README"
-    touch $(get_git_root)/.opsconf
+    touch "$(get_git_root)/.opsconf"
     log_debug "Created .opsconf file"
     git add README.md .opsconf >/dev/null
     git commit -m "First commit" &>/dev/null
     log_debug "README commited"
-    for branch in $OPSCONF_BRANCH_VALID $OPSCONF_BRANCH_QUALIF $OPSCONF_BRANCH_WORK ; do
+    for branch in "$OPSCONF_BRANCH_VALID" "$OPSCONF_BRANCH_QUALIF" "$OPSCONF_BRANCH_WORK" ; do
         # si la branche existe
         if git branch | grep $branch &>/dev/null ; then
             git checkout $branch &>/dev/null
@@ -103,10 +102,10 @@ is_repo_empty() {
 
 has_uptodate_hooks() {
     HOOKDIR="$(git rev-parse --git-dir)/hooks"
-    for f in $(ls $HOOKDIR) ; do
-        hookversion="$(grep OPSCONFVERSION $HOOKDIR/$f | cut -d'=' -f2)"
+    for f in "$HOOKDIR"/* ; do
+        hookversion=$(grep OPSCONFVERSION "$f" | cut -d'=' -f2)
 
-        if [[ $hookversion != "" && $hookversion != $OPSCONFVERSION ]]; then
+        if [[ "$hookversion" != "" && "$hookversion" != "$OPSCONFVERSION" ]]; then
             # One issue is enough to say if it has to be updated or not
             return 1
         fi
@@ -124,15 +123,15 @@ prepend_file_version() {
     # @param $1: the name of the file that contains the commit message
     # @return nothing
     
-    commit_msg=$(cat $1)
+    commit_msg=$(cat "$1")
     filetoadd=$(git diff --cached --name-only)
-    if [[ $(head -n1 $1) = "" ]]; then
+    if [[ "$(head -n1 "$1")" = "" ]]; then
         log_error "Empty commit. Aborting"
         return 1
     fi
-    previouscommitsubject=$(git log -n 1 --pretty=format:%s $filetoadd)
+    previouscommitsubject=$(git log -n 1 --pretty=format:%s "$filetoadd")
 
-    previouscommitversion_withv=$(echo $previouscommitsubject | cut -d: -f1)
+    previouscommitversion_withv=$(echo "$previouscommitsubject" | cut -d: -f1)
     previouscommitversion_nov=${previouscommitversion_withv/v/}
 
     number_regexp='^[0-9]+$'
@@ -157,12 +156,11 @@ check_branch_work() {
 }
 
 check_branch_uptodate() {
-    localbranch=$(get_current_branch)
     git fetch
     UPSTREAM=${1:-'@{u}'}
     LOCAL=$(git rev-parse @)
     REMOTE=$(git rev-parse "$UPSTREAM")
-    if [ $LOCAL = $REMOTE ] ; then
+    if [ "$LOCAL" = "$REMOTE" ] ; then
         log_debug "Repository is up-to-date"
         return 0
     else
@@ -187,12 +185,12 @@ check_commit_unique_file() {
     filenb=$($changedfilecommand | wc -l)
 
     log_debug "Number of files to commit: $filenb"
-    if [ $filenb -eq 0 ]; then
+    if [ "$filenb" -eq 0 ]; then
         log_error "Nothing to commit. Aborting."
         return 1
-    elif [ $filenb -ne 1 ]; then
+    elif [ "$filenb" -ne 1 ]; then
         log_error "You are commiting more than one file. Aborting."
-        git reset HEAD $($changedfilecommand)
+        git reset HEAD "$($changedfilecommand)"
         return 1
     else 
         return 0
@@ -201,7 +199,7 @@ check_commit_unique_file() {
 
 do_push() {
     branch=$(get_current_branch)
-    git push origin $branch
+    git push origin "$branch"
 }
 
 retrieve_version() {
@@ -221,51 +219,53 @@ retrieve_version() {
     version=$3
 
     # get the last commit on the file, on our branch
-    current_hash=$(git log --format=%H -n1 HEAD -- $file)
+    current_hash=$(git log --format=%H -n1 HEAD -- "$file")
 
     # if we don't get one, let's pretend it's HEAD,
     # it means the file does not exist yet in this branch
     if [[ $current_hash = "" ]]; then
         log_debug "The file does not exist on this branch: $file"
         current_hash=$(git log --format=%H -n1 HEAD)
-        current_hash_other=$(git log --diff-filter=A --format=%H -n1 $branch -- file)
+        current_hash_other=$(git log --diff-filter=A --format=%H -n1 "$branch" -- "$file")
     else
-        current_hash_subject=$(git log --format=%s -n1 HEAD -- $file)
-        current_hash_other=$(git log --format=%H --grep "$current_hash_subject" $branch -- $file)
+        current_hash_subject=$(git log --format=%s -n1 HEAD -- "$file")
+        current_hash_other=$(git log --format=%H --grep "$current_hash_subject" "$branch" -- "$file")
     fi
 
     if [[ $version = "latest" ]]; then
         version_rev="$branch"
     else
-        version=$(_prepend_v2version $version)
+        version=$(_prepend_v2version "$version")
     
-        version_rev=$(git log --oneline ..$branch -- $file | grep -P "^[a-z0-9]{7} $version: " | cut -d' ' -f1) 
+        version_rev=$(git log --oneline .."$branch" -- "$file" | grep -P "^[a-z0-9]{7} $version: " | cut -d' ' -f1) 
     fi
-    revs_to_retrieve=$(git log --oneline --reverse $current_hash_other..$version_rev -- $file | cut -d' ' -f1)
+    revs_to_retrieve=$(git log --oneline --reverse "$current_hash_other".."$version_rev" -- "$file" | cut -d' ' -f1)
     log_debug "Cherry-picking commits: $revs_to_retrieve"
-    git cherry-pick $revs_to_retrieve >/dev/null
+    for rev in $revs_to_retrieve ; do
+        git cherry-pick "$rev" >/dev/null
+    done
     cat <<EOF >&1
-[INFO] Retrieved changes of $file: 
-$(git log --format=%s --reverse $current_hash..HEAD -- $file | sed -e "s/^/    /")
+[INFO] Retrieved changes of "$file": 
+$(git log --format=%s --reverse "$current_hash"..HEAD -- "$file" | sed -e "s/^/    /")
 EOF
 }
 
 clean_local_changes() {
     file=$1
-    git checkout -- $file
+    git checkout -- "$file"
 }
 
 rollback_to_version() {
     file=$1
-    version=$(_prepend_v2version $2)
+    version=$(_prepend_v2version "$2")
     reason="$3"
-    version_hash=$(git log --grep "$version: " --format=%H -- $file)
-    if ! git diff HEAD..$version_hash -- $file | git apply ; then
+    version_hash=$(git log --grep "$version: " --format=%H -- "$file")
+    if ! git diff HEAD.."$version_hash" -- "$file" | git apply ; then
         log_error "Rollback failed. Aborting."
-        git reset HEAD -- $file
+        git reset HEAD -- "$file"
         return 1
     fi
-    git commit $file -m "$reason
+    git commit "$file" -m "$reason
 
 Rolled-back to $version"
 }
@@ -273,41 +273,41 @@ Rolled-back to $version"
 get_available_version() {
     branch=$1
     file=$2
-    echo $(git log --format=%s -n1 $branch -- $file)
+    git log --format=%s -n1 "$branch" -- "$file"
 }
 
 get_current_version() {
     file=$1
     branch="HEAD"
-    get_available_version $branch $file
+    get_available_version "$branch" "$file"
 }
 
 list_available_versions() {
     branch=$1
     file=$2
     cat <<EOF >&1
-$(git log --format=%s $branch -- $file)
+$(git log --format=%s "$branch" -- "$file")
 EOF
 }
 
 list_all_versions() {
     file=$1
     branch="$OPSCONF_BRANCH_WORK"
-    list_available_versions $branch $file
+    list_available_versions "$branch" "$file"
 }
 
 list_current_versions() {
     file=$1
     branch="HEAD"
-    list_available_versions $branch $file
+    list_available_versions "$branch" "$file"
 }
 
 diff_between_versions() {
     file=$1
-    v1=$(_prepend_v2version $2)
-    v2=$(_prepend_v2version $3)
+    v1=$(_prepend_v2version "$2")
+    v2=$(_prepend_v2version "$3")
 
-    h1=$(git log --grep "$v1: " --format=%H -- $file)
-    h2=$(git log --grep "$v2: " --format=%H -- $file)
-    git diff $h1..$h2 -- $file
+    h1=$(git log --grep "$v1: " --format=%H -- "$file")
+    h2=$(git log --grep "$v2: " --format=%H -- "$file")
+    git diff "$h1".."$h2" -- "$file"
 }

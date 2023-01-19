@@ -1,9 +1,11 @@
+#!/bin/bash -e
+
 _show_help() {
     exitcode=$1
     cat <<EOF
 opsconf diff FILE VERSION_OLD VERSION_NEW: Show the difference of FILE between version VERSION_OLD and VERSION_NEW
 EOF
-    exit $exitcode
+    exit "$exitcode"
 }
 
 run_cmd() {
