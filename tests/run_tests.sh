@@ -4,7 +4,7 @@ TEST_DIR="$(dirname $(realpath ${BASH_SOURCE[0]}))"
 
 pushd ${TEST_DIR} > /dev/null
 
-scripts=$(cd $(dirname $0) ; ls * | grep -v 'env.sh' | grep -v 'run_tests.sh')
+scripts=$(ls * | grep -v 'env.sh' | grep -v 'run_tests.sh')
 
 if [ $# -ge 1 ] ; then
     filter=$*
