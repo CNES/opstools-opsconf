@@ -4,7 +4,8 @@
 
 CURRENT_TEST=30_qualify_validate_log
 
-pushd "$REPO_LOCAL"
+pushd "$REPO_LOCAL" > /dev/null
+git checkout work 2> /dev/null
 mkdir ${CURRENT_TEST}
 
 FILE=${CURRENT_TEST}/file.txt
@@ -41,7 +42,7 @@ for branch in "qualification" "master" ; do
     else
         log_result "KO"
     fi
-    
+
     log_test "Branch $branch has no version of $FILE"
     opsconf checkout "$branch"
     if [ "$(opsconf log "$FILE" | wc -l)" -eq 0 ]; then
@@ -49,14 +50,14 @@ for branch in "qualification" "master" ; do
     else
         log_result "KO"
     fi
-    
+
     log_test "10 versions of $FILE are available"
     if [ "$(opsconf log --all "$FILE" | wc -l)" -eq 10 ]; then
         log_result "OK"
     else
         log_result "KO"
     fi
-    
+
     log_test "Bring new file (directly in v5) to branch $branch"
     opsconf "$cmd" "$FILE" 5
     if [ "$(opsconf log "$FILE" | wc -l)" -eq 5 ]; then
@@ -64,7 +65,7 @@ for branch in "qualification" "master" ; do
     else
         log_result "KO"
     fi
-    
+
     log_test "Bring new version (v5->v7) of existing file to branch $branch"
     opsconf "$cmd" "$FILE" 7
     if [ "$(opsconf log "$FILE" | wc -l)" -eq 7 ]; then

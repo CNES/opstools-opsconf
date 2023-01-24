@@ -21,6 +21,7 @@ for s in $scripts; do
         # Run if at least a filter matches
         for f in $filter ; do 
             if [[ "$s" =~ .*"$f".* ]] ; then
+                echo "[INFO] Run script $s"
                 ./"$s"
                 break
             fi

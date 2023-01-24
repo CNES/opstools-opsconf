@@ -5,20 +5,23 @@ HOOK_SRC=$OPSCONF_DIR/githooks
 _show_help() {
     exitcode=$1
     cat <<EOF
-opsconf init: initialize (or re-initialize the repository)
+opsconf init [--root-branch BRANCH]: initialize (or re-initialize the repository)
+The "--root-branch" option defines which branch will be used as a starting point for the "work" branch.
 EOF
     exit "$exitcode"
 }
 
 run_cmd() {
-    if [ "$#" -ne 0 ]; then
+    if [ "$#" -eq 2 ] && [ "$1" = "--root-branch" ] ; then
+        ROOT_BRANCH="$2"
+    elif [ "$#" -ne 0 ]; then
         subcommand="$1"
         shift
         case "$subcommand" in
             "--help")
                 _show_help 0 ;;
             *)
-                _show_help 0 ;;
+                _show_help 1 ;;
         esac
     fi
 
@@ -31,13 +34,21 @@ run_cmd() {
 
     GIT_ROOT=$(get_git_root)
     if is_repo_empty ; then
-        log_info "Repo is empty, creating branches and first Readme"
+        log_info "Repository is empty, creating branches and first Readme"
         init_branches
+    elif ! is_opsconf_repo ; then
+        if [ -z "${ROOT_BRANCH+x}" ] ; then
+            log_error "This repo is not made for opsconf."
+            log_error "To allow migration, add the '--root-branch BRANCH' option"
+            exit 1
+        fi
+        log_info "Porting standard git repository to opsconf"
+        init_branches "$ROOT_BRANCH"
     fi
 
-    log_info "Updating hooks" 
+    log_info "Updating hooks"
     HOOK_DST="${GIT_ROOT}/.git/hooks"
-    for hook in "$HOOK_SRC"/* ; do 
+    for hook in "$HOOK_SRC"/* ; do
     	cp -f "${hook}" "${HOOK_DST}/"
         chmod +x "${HOOK_DST}/$(basename "${hook}")"
     done

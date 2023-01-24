@@ -5,6 +5,7 @@
 CURRENT_TEST=20_commits
 
 pushd "$REPO_LOCAL"
+git checkout work 2> /dev/null
 mkdir ${CURRENT_TEST}
 
 ONE_FILE=${CURRENT_TEST}/one_file.txt
@@ -15,6 +16,26 @@ long_msg="Write stuff in toto
 
 It was really needed"
 opsconf commit -m "$long_msg" "$ONE_FILE"
+
+for branch in "master" "qualification" ; do
+    log_test "Cannot commit from $branch"
+    git checkout "$branch" 2> /dev/null
+    touch test
+    git add test
+    if ! opsconf commit test -m "message" &> /dev/null ; then
+        log_result "OK"
+    else
+        log_result "KO"
+    fi
+    git reset --hard &> /dev/null
+    git checkout work 2> /dev/null
+done
+
+if [ "$(git log --format=%s -n1 | cut -d: -f1)" = "v2" ]; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
 
 log_test "$ONE_FILE has version 2"
 if [ "$(git log --format=%s -n1 | cut -d: -f1)" = "v2" ]; then

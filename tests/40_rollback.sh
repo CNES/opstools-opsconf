@@ -5,6 +5,7 @@
 CURRENT_TEST=40_rollback
 
 pushd "$REPO_LOCAL"
+git checkout work 2> /dev/null
 mkdir ${CURRENT_TEST}
 
 FILE=${CURRENT_TEST}/file.txt
