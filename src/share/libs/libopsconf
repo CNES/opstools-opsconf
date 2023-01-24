@@ -126,11 +126,11 @@ is_repo_empty() {
 is_opsconf_repo() {
     branches=$(git branch -r)
     if echo "$branches" | grep "$OPSCONF_BRANCH_WORK" && echo "$branches" | "$OPSCONF_BRANCH_QUALIF" && echo "$branches" | "$OPSCONF_BRANCH_VALID" ; then
-        git checkout "$OPSCONF_BRANCH_WORK" > /dev/null
-        if [ -f "$(get_git_root)/.opsconf" ] ; then
-            return 0
-        else
+        filenb=$(git ls-files work -- .opsconf | wc -l)
+        if [ "$filenb" -eq 0 ] ; then
             return 1
+        else
+            return 0
         fi
     else
         return 1
