@@ -46,7 +46,7 @@ init_branches() {
         ROOT_BRANCH="$1"
         git checkout "$ROOT_BRANCH" &> /dev/null
         git checkout --orphan "$OPSCONF_BRANCH_WORK" &> /dev/null
-        find -type f | grep -v ^./.git | xargs -I@ sh -c "git add @ && git commit @ -m \"v1: First version for '@'\""
+        find -type f | grep -v ^./.git | xargs -I@ sh -c "git add @ && git commit @ -m \"v1: First version for '@'\" &> /dev/null"
     else
         git checkout -b "$OPSCONF_BRANCH_WORK" > /dev/null
         touch "$(get_git_root)/README.md"
