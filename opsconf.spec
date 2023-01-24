@@ -10,6 +10,8 @@ Summary:        CNES' Opsconf
 License:        MIT
 URL:            https://gitlab.cnes.fr/DNO-OP/opsconf 
 Source:         %{name}-%{version}.tar.gz
+BuildArch:      noarch
+
 
 Prefix: 	/usr
 BuildRequires:  git
