@@ -133,8 +133,8 @@ is_repo_empty() {
 }
 
 is_opsconf_repo() {
-    if git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_WORK" && git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_QUALIF" && git show-ref --quiet "refs/heads/$OPSCONF_BRANCH__VALID" ; then
-        filenb=$(git ls-files work -- .opsconf | wc -l)
+    if git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_WORK" && git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_QUALIF" && git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_VALID" ; then
+        filenb=$(git ls-files "$OPSCONF_BRANCH_WORK" -- .opsconf | wc -l)
         if [ "$filenb" -eq 0 ] ; then
             return 1
         else
