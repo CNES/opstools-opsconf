@@ -42,10 +42,19 @@ get_current_branch() {
 }
 
 init_branches() {
+    if git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_WORK" || git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_QUALIF" || git show-ref --quiet "refs/heads/$OPSCONF_BRANCH__VALID" ; then
+        log_error "One of the following branch exists, aborting: $OPSCONF_BRANCH_WORK, $OPSCONF_BRANCH_QUALIF, $OPSCONF_BRANCH_VALID"
+        exit 1
+    fi
+    if [ -f "$(get_git_root)/.opsconf" ] ; then
+         log_error ".opsconf file already exists. Aborting."
+         exit 1
+    fi
+
     if [ "$#" -eq 1 ] ; then
         ROOT_BRANCH="$1"
         git checkout "$ROOT_BRANCH" &> /dev/null
-        git checkout --orphan "$OPSCONF_BRANCH_WORK" &> /dev/null
+        git checkout --orphan "$OPSCONF_BRANCH_WORK"
         find -type f | grep -v ^./.git | xargs -I@ sh -c "git add @ && git commit @ -m \"v1: First version for '@'\" &> /dev/null"
     else
         git checkout -b "$OPSCONF_BRANCH_WORK" > /dev/null
@@ -64,10 +73,10 @@ EOF
     git commit -m "Initialized opsconf" &>/dev/null
     commit_hash="$(git log --format=%H -n1)"
     git push -u origin "$OPSCONF_BRANCH_WORK" &> /dev/null
-    log_debug "README committed"
+    log_debug "Opsconf committed"
     for branch in "$OPSCONF_BRANCH_VALID" "$OPSCONF_BRANCH_QUALIF" ; do
         # si la branche existe
-        if git branch | grep $branch &>/dev/null ; then
+        if git show-ref --quiet "refs/heads/$branch" ; then
             git checkout $branch &>/dev/null
             git cherry-pick "$commit_hash" &>/dev/null
             git push origin $branch &>/dev/null
@@ -124,8 +133,7 @@ is_repo_empty() {
 }
 
 is_opsconf_repo() {
-    branches=$(git branch -r)
-    if echo "$branches" | grep "$OPSCONF_BRANCH_WORK" && echo "$branches" | "$OPSCONF_BRANCH_QUALIF" && echo "$branches" | "$OPSCONF_BRANCH_VALID" ; then
+    if git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_WORK" && git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_QUALIF" && git show-ref --quiet "refs/heads/$OPSCONF_BRANCH__VALID" ; then
         filenb=$(git ls-files work -- .opsconf | wc -l)
         if [ "$filenb" -eq 0 ] ; then
             return 1
