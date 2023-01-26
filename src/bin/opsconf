@@ -22,6 +22,7 @@ Arguments (to work on files)
 
 Arguments (to work on the repository)
     init: initialize the local repository
+    status: list the current version in given state (tag or branch)
     liststates: list the repository states
     checkout: get to a given repository state
     tag: label the current state of the whole repository
@@ -72,6 +73,8 @@ main() {
             . $OPSCONF_DIR/opsconf-tag ;;
         "liststates")
             . $OPSCONF_DIR/opsconf-liststates ;;
+        "status")
+            . $OPSCONF_DIR/opsconf-status ;;
         "checkout")
             . $OPSCONF_DIR/opsconf-checkout ;;
         "help")

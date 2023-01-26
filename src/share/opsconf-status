@@ -1,0 +1,24 @@
+#!/bin/bash -e
+
+_show_help() {
+    exitcode=$1
+    cat <<EOF
+opsconf status [BRANCH|TAG]: Show the versions of the files of the current state of the repo, or given branch BRANCH or tag TAG
+EOF
+    exit "$exitcode"
+}
+
+run_cmd() {
+    if [ $# -eq 1 ] ; then
+        if [ "$1" = "--help" ] ; then
+            _show_help 0
+        else
+            rev=$1
+        fi
+    elif [ $# -eq 0 ] ; then
+        rev="HEAD"
+    else
+        _show_help 1
+    fi
+    show_current_versions "$rev"
+}
