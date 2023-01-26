@@ -262,7 +262,7 @@ retrieve_version() {
     #
     # @param $1: the branch where to retrieve the change
     # @param $2: the file path to retrieve
-    # @param $3: the version to retrieve (can be "latest")
+    # @param $3: the version to retrieve
     if [ "$#" -ne 3 ]; then
          log_error "This function expects 3 arguments"
          return 1
@@ -270,7 +270,15 @@ retrieve_version() {
 
     src_branch=$1
     file=$2
-    version=$3
+    version=$(_prepend_v2version "$3")
+
+    if git log --grep "$OPSCONF_PREFIX_PATTERN" --format=%s -n1 HEAD -- "$file" | grep "^$version" ; then
+        log_info "$file is already in version $version. Nothing to do."
+        return 0
+    elif git log --grep "$OPSCONF_PREFIX_PATTERN" --format=%s HEAD -- "$file" | grep "^$version" ; then
+        log_error "$file is already in a latter version than $version. Aborting."
+        return 1
+    fi
 
     # get the last commit on the file, on our branch
     current_hash=$(git log --grep "$OPSCONF_PREFIX_PATTERN" --format=%H -n1 HEAD -- "$file")
@@ -296,13 +304,7 @@ retrieve_version() {
     current_hash_subject=$(git log --grep "$OPSCONF_PREFIX_PATTERN" --format=%s -n1 HEAD -- "$file")
     current_hash_other=$(git log --format=%H --grep "$current_hash_subject" "$src_branch" -- "$file")
 
-    if [ "$version" = "latest" ]; then
-        version_rev="$src_branch"
-    else
-        version=$(_prepend_v2version "$version")
-
-        version_rev=$(git log --grep "^$version: " --format=%H .."$src_branch" -- "$file")
-    fi
+    version_rev=$(git log --grep "^$version: " --format=%H .."$src_branch" -- "$file")
     if [ "${version_rev}" = "" ] ; then
         log_error "$version of $file does not exist"
         return 1

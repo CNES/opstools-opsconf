@@ -66,6 +66,20 @@ for branch in "qualification" "master" ; do
         log_result "KO"
     fi
 
+    log_test "Bring again same file, same version to branch $branch"
+    if opsconf "$cmd" "$FILE" 5 && [ "$(opsconf log "$FILE" | wc -l)" -eq 5 ]; then
+        log_result "OK"
+    else
+        log_result "KO"
+    fi
+
+    log_test "Bring again same file, previous version to branch $branch"
+    if ! opsconf "$cmd" "$FILE" 3 && [ "$(opsconf log "$FILE" | wc -l)" -eq 5 ]; then
+        log_result "OK"
+    else
+        log_result "KO"
+    fi
+
     log_test "Bring new version (v5->v7) of existing file to branch $branch"
     opsconf "$cmd" "$FILE" 7
     if [ "$(opsconf log "$FILE" | wc -l)" -eq 7 ]; then
