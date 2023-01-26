@@ -25,14 +25,14 @@ run_cmd() {
         esac
     fi
 
-    if ! is_git_repo ; then
+    if ! git_is_git ; then
         git init
         log_info "Git repository initialized: $PWD"
     else
         log_info "I am already in a git repository, moving forwards"
     fi
 
-    GIT_ROOT=$(get_git_root)
+    GIT_ROOT=$(git_get_root)
     if is_repo_empty ; then
         log_info "Repository is empty, creating branches and first Readme"
         init_branches

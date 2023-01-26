@@ -9,6 +9,8 @@ OPSCONF_BRANCH_VALID=master
 OPSCONF_PREFIX_PATTERN="^v[0-9]\+: "
 OPSCONF_HOOKDIR=$OPSCONF_DIR/githooks
 
+. "$(dirname ${BASH_SOURCE[0]})/libgit"
+
 log_debug() {
     if [ ! -z "${OPSCONF_DEBUG+x}" ] ; then
         echo "[DEBUG] $*"
@@ -33,56 +35,48 @@ _prepend_v2version() {
     echo "$version"
 }
 
-get_git_root() {
-    git rev-parse --show-toplevel
-}
-
-get_current_branch() {
-    git rev-parse --abbrev-ref HEAD
-}
-
 init_branches() {
-    if git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_WORK" || git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_QUALIF" || git show-ref --quiet "refs/heads/$OPSCONF_BRANCH__VALID" ; then
+    if git_exist_branch "$OPSCONF_BRANCH_WORK" || git_exist_branch "$OPSCONF_BRANCH_QUALIF" || git_exist_branch "$OPSCONF_BRANCH_VALID" ; then
         log_error "One of the following branch exists, aborting: $OPSCONF_BRANCH_WORK, $OPSCONF_BRANCH_QUALIF, $OPSCONF_BRANCH_VALID"
-        exit 1
+        return 1
     fi
-    if [ -f "$(get_git_root)/.opsconf" ] ; then
+    if [ -f "$(git_get_root)/.opsconf" ] ; then
          log_error ".opsconf file already exists. Aborting."
-         exit 1
+         return 1
     fi
 
     if [ "$#" -eq 1 ] ; then
         ROOT_BRANCH="$1"
         git checkout "$ROOT_BRANCH" &> /dev/null
-        git checkout --orphan "$OPSCONF_BRANCH_WORK"
+        git_create_branch_orphan "$OPSCONF_BRANCH_WORK"
         find -type f | grep -v ^./.git | xargs -I@ sh -c "git add @ && git commit @ -m \"v1: First version for '@'\" &> /dev/null"
     else
-        git checkout -b "$OPSCONF_BRANCH_WORK" > /dev/null
-        touch "$(get_git_root)/README.md"
-        cat > "$(get_git_root)/README.md" << EOF
+        git_create_branch "$OPSCONF_BRANCH_WORK"
+        touch "$(git_get_root)/README.md"
+        cat > "$(git_get_root)/README.md" << EOF
 # Readme
 This repository is managed by opsconf.
 EOF
-        git add README.md > /dev/null
+        git_add README.md > /dev/null
         log_debug "Created first README"
     fi
 
-    touch "$(get_git_root)/.opsconf"
+    touch "$(git_get_root)/.opsconf"
     log_debug "Created .opsconf file"
-    git add .opsconf > /dev/null
+    git_add .opsconf > /dev/null
     git commit -m "Initialized opsconf" &>/dev/null
     commit_hash="$(git log --format=%H -n1)"
     git push -u origin "$OPSCONF_BRANCH_WORK" &> /dev/null
     log_debug "Opsconf committed"
     for branch in "$OPSCONF_BRANCH_VALID" "$OPSCONF_BRANCH_QUALIF" ; do
         # si la branche existe
-        if git show-ref --quiet "refs/heads/$branch" ; then
+        if git_exist_branch "$branch" ; then
             git checkout $branch &>/dev/null
             git cherry-pick "$commit_hash" &>/dev/null
             git push origin $branch &>/dev/null
             log_debug "Branch updated: $branch"
         else
-            git checkout --orphan $branch &>/dev/null
+            git_create_branch_orphan $branch
             git reset --hard
             git cherry-pick "$commit_hash" &> /dev/null
             git push -u origin $branch &>/dev/null
@@ -97,7 +91,7 @@ is_git_repo() {
 }
 
 is_current_branch_work() {
-    current_branch=$(get_current_branch)
+    current_branch=$(git_current_branch)
     if [ "$current_branch" = "$OPSCONF_BRANCH_WORK" ] ; then
         return 0
     else
@@ -106,7 +100,7 @@ is_current_branch_work() {
 }
 
 is_current_branch_qualif() {
-    current_branch=$(get_current_branch)
+    current_branch=$(git_current_branch)
     if [ "$current_branch" = "$OPSCONF_BRANCH_QUALIF" ] ; then
         return 0
     else
@@ -115,7 +109,7 @@ is_current_branch_qualif() {
 }
 
 is_current_branch_valid() {
-    current_branch=$(get_current_branch)
+    current_branch=$(git_current_branch)
     if [ "$current_branch" = "$OPSCONF_BRANCH_VALID" ] ; then
         return 0
     else
@@ -124,8 +118,7 @@ is_current_branch_valid() {
 }
 
 is_repo_empty() {
-    git rev-parse --verify HEAD >/dev/null 2>&1
-    if [ "$?" -eq "0" ] ; then
+    if git_is_git ; then
         return 1
     else
         return 0
@@ -133,7 +126,7 @@ is_repo_empty() {
 }
 
 is_opsconf_repo() {
-    if git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_WORK" && git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_QUALIF" && git show-ref --quiet "refs/heads/$OPSCONF_BRANCH_VALID" ; then
+    if git_exist_branch "$OPSCONF_BRANCH_WORK" && git_exist_branch "$OPSCONF_BRANCH_QUALIF" && git_exist_branch "$OPSCONF_BRANCH_VALID" ; then
         filenb=$(git ls-files "$OPSCONF_BRANCH_WORK" -- .opsconf | wc -l)
         if [ "$filenb" -eq 0 ] ; then
             return 1
@@ -146,7 +139,7 @@ is_opsconf_repo() {
 }
 
 has_uptodate_hooks() {
-    HOOKDIR="$(git rev-parse --git-dir)/hooks"
+    HOOKDIR="$(git_get_gitdir)/hooks"
     for hook_src in "$OPSCONF_HOOKDIR"/* ; do
         deployed_hook="$HOOKDIR/$(basename "$hook_src")"
         # If one hook from the share dir is not in the hooks
@@ -252,7 +245,7 @@ check_commit_unique_file() {
 }
 
 do_push() {
-    branch=$(get_current_branch)
+    branch=$(git_current_branch)
     git push origin "$branch" &> /dev/null
 }
 
@@ -296,7 +289,7 @@ retrieve_version() {
         first_version_date="$(git show -s --format=%ci "$first_version_hash")"
 
         git checkout "$first_version_hash" -- "$file" > /dev/null
-        git add "$file" > /dev/null
+        git_add "$file" > /dev/null
         export OPSCONF_BYPASS_CHECK=yes
         git commit "$file" --date="${first_version_date}" --author="${first_version_user}" -m "${first_version_commit_msg}" > /dev/null
         unset OPSCONF_BYPASS_CHECK
@@ -314,7 +307,7 @@ retrieve_version() {
     for rev in $revs_to_retrieve ; do
         git cherry-pick "$rev" > /dev/null
     done
-    git push origin "$(get_current_branch)" &> /dev/null
+    git push origin "$(git_current_branch)" &> /dev/null
     cat <<EOF >&1
 [INFO] Retrieved changes of "$file":
 $(git log --format=%s --reverse "$current_hash"..HEAD -- "$file" | sed -e "s/^/    /")
