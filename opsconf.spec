@@ -3,8 +3,8 @@
 %define name            opsconf
 
 Name:           %{name}
-Version:        %{version} 
-Release:        %{release}%{?dist}
+Version:        %{_version} 
+Release:        %{_release}%{?dist}
 Summary:        CNES' Opsconf
 
 License:        MIT
@@ -42,6 +42,7 @@ cp -rf src/share/* $RPM_BUILD_ROOT/%{prefix}/share/opsconf/
 %{prefix}/share/opsconf/githooks/commit-msg
 %{prefix}/share/opsconf/githooks/post-commit
 %{prefix}/share/opsconf/githooks/pre-commit
+%{prefix}/share/opsconf/libs/libgit
 %{prefix}/share/opsconf/libs/libopsconf
 %{prefix}/share/opsconf/opsconf-checkout
 %{prefix}/share/opsconf/opsconf-commit
@@ -51,6 +52,7 @@ cp -rf src/share/* $RPM_BUILD_ROOT/%{prefix}/share/opsconf/
 %{prefix}/share/opsconf/opsconf-log
 %{prefix}/share/opsconf/opsconf-qualify
 %{prefix}/share/opsconf/opsconf-rollback
+%{prefix}/share/opsconf/opsconf-status
 %{prefix}/share/opsconf/opsconf-sync
 %{prefix}/share/opsconf/opsconf-tag
 %{prefix}/share/opsconf/opsconf-validate

@@ -6,7 +6,7 @@ SOURCES=build/SOURCES
 SPECS=build/SPECS
 SRPMS=build/SRPMS
 
-VERSION="$(git describe 2>/dev/null || echo 0.0 | sed 's/-/_/g')"
+VERSION="$(git describe 2>/dev/null | sed 's/^v//' | sed 's/-/_/g' || echo 0.0 )"
 
 if [ -z "$RELEASE" ] ; then
     RELEASE=1
@@ -21,6 +21,6 @@ tar czf "$SOURCES/opsconf-$VERSION.tar.gz" --transform "s,^\./,opsconf-$VERSION/
 cp opsconf.spec $SPECS/
 
 rpmbuild --define "_topdir $(pwd)/build" \
-	 --define "release $RELEASE" \
-	 --define "version $VERSION" \
+	 --define "_release $RELEASE" \
+	 --define "_version $VERSION" \
 	 -v -bb --clean $SPECS/opsconf.spec
