@@ -341,24 +341,39 @@ rollback_to_version() {
 Rolled-back to $version"
 }
 
-get_available_version() {
-    branch=$1
-    file=$2
-    git log --format=%s -n1 "$branch" -- "$file"
-}
-
-get_current_version() {
-    file=$1
-    branch="HEAD"
-    get_available_version "$branch" "$file"
-}
-
 list_available_versions() {
     branch=$1
     file=$2
-    raw_logs=$(git log --grep "$OPSCONF_PREFIX_PATTERN" --format=%s "$branch" -- "$file")
-    if [ -n "${raw_logs}" ] ; then
-        formated_logs=$(echo "${raw_logs}" | sed 's,\([[:digit:]]\+\): ,\1§,' | column -t -s§ -o' | ')
+    if [ "$(git ls-tree -r --name-only "$branch" -- "$file" )" != "$file" ] ; then
+        log_error "This is not a file, or is not available in the branch $branch: $file"
+        return 1
+    fi
+    raw_logs=$(git log --grep "$OPSCONF_PREFIX_PATTERN" --format="%H,%s" "$branch" -- "$file")
+
+    # For this given file, get all the hashes that are current to the given tag
+    hash_tags=""
+    for tag in $(git tag -l) ; do
+        hash_tags="$hash_tags $(git log -n1 --format=%H "$tag" -- "$file"),$tag,\n"
+    done
+    raw_logs_and_tags=""
+    # For all logs (hash,log), we get the hash
+    while read -r raw_log ; do
+        hash=$(echo "${raw_log}" | cut -d, -f1)
+        raw_log_out=${raw_log}
+        # For all tag (hash,tag), rewrite "hash,log" by "tag hash,log"
+        # After a while you get "tag tag tag hash, log"
+        while read hash_tag ; do
+            tag=$(echo ${hash_tag} | cut -d, -f2)
+            raw_log_out="${raw_log_out/$hash/$tag $hash}"
+        done < <(echo -e "${hash_tags}" | grep "$hash")
+        # Remove the hash to get "tag tag tag , log"
+        raw_logs_and_tags="$raw_logs_and_tags ${raw_log_out/$hash/}\n"
+    done < <(echo -e "$raw_logs")
+
+    raw_logs_and_tags=$(echo -e "$raw_logs_and_tags")
+
+    if [ -n "${raw_logs_and_tags}" ] ; then
+        formated_logs=$(echo "${raw_logs_and_tags}" | sed 's,^ \(.*\)\,v\([[:digit:]]\+\): \(.*\)$,\2\t\3\t\1\t,' | column -t -s $'\t' -o' | ')
         cat <<EOF >&1
 ${formated_logs}
 EOF
