@@ -34,7 +34,7 @@ run_cmd() {
         list_all_versions "$file"
     else
         if [ -t 1 ] ; then
-            echo "On branch $(get_current_branch):"
+            echo "On branch $(git_current_branch):"
         fi
         list_current_versions "$file"
     fi

@@ -13,7 +13,7 @@ export REPO_LOCAL="$WORKSPACE/local_dir"
 
 lorem_ipsum() {
     nb_lines=$1
-    base64 /dev/urandom | awk '{print(0==NR%10)?"":$nb_lines}' | sed 's/[^[:alpha:]]/ /g' | head -"$nb_lines"
+    base64 /dev/urandom | awk '{print(0==NR%10)?"":$nb_lines}' | sed 's/[^[:alpha:]]/ /g' | sed 's/ \+$//' | head -"$nb_lines"
 }
 
 rev_from_branch_version() {

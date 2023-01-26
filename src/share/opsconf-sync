@@ -9,17 +9,14 @@ EOF
 }
 
 run_cmd() {
-    if [ $# -eq 1 ] ; then
-        if [ "$1" = "help" ]; then
-            _show_help 0
-        else
-            remote="$1"
-        fi
+    if [ $# -eq 1 ] && [ "$1" = "help" ]; then
+        _show_help 0
     else
-        remote="origin"
+        _show_help 1
     fi
+    remote="origin"
 
-    branch=$(get_current_branch)
+    branch=$(git_current_branch)
 
     # Synchronize with remote
     git fetch "$remote" "$branch"
@@ -34,7 +31,7 @@ run_cmd() {
     # Or the reverse (so push)
     elif git merge-base --is-ancestor "$remote/$branch" "$branch" ; then
         log_info "Local is ahead the remote repository"
-        git push "$remote" "$branch"
+        git_push "$branch"
         log_info "Remote was updated"
     else
         log_error "Local and remote branchs have diverged. Call an expert!"

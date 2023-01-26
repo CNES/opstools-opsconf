@@ -12,12 +12,12 @@ EOF
 commit_file() {
     file="$1"
     commit_msg="$2"
-    git add "$file"
+    git_add_one_file "$file"
     log_debug "File added: \"$file\""
     if [ "$commit_msg" = "" ]; then
-        git commit "$file"
+        git_commit_one_file "$file"
     else
-        git commit -m "$commit_msg" "$file"
+        git_commit_one_file "$file" "$commit_msg"
     fi
     log_info "File commited: \"$file\""
 }
@@ -50,7 +50,7 @@ run_cmd() {
     fi
     
     # Retirer tous les fichiers ajoutés: on fait tout via "commit"
-    git reset >/dev/null
+    git_reset_soft
 
     ## Si recursif
     if [ "$recurse" -eq 0 ]; then

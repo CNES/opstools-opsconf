@@ -22,21 +22,107 @@ git_exist_branch() {
     git show-ref --quiet "refs/heads/$branch"
 }
 
+git_init() {
+    git init
+}
+
 git_checkout() {
     rev=$1
-    git checkout "$rev"
+    git checkout "$rev" &> /dev/null
+}
+
+git_get_file_from_rev() {
+    file=$1
+    rev=$2
+    git checkout "$rev" -- "$file"
 }
 
 git_create_branch() {
     branch=$1
-    git checkout -b "$branch"
+    git checkout -b "$branch" &> /dev/null
 }
 
 git_create_branch_orphan() {
     branch=$1
-    git checkout --orphan "$branch"
+    git checkout --orphan "$branch" &> /dev/null
 }
 
-git_add() {
-    git add "$@"
+git_add_one_file() {
+    file=$1
+    git add "$file"
+}
+
+git_commit_one_file() {
+    if [ $# -eq 1 ]; then
+        file=$1
+        git commit "$file" &> /dev/null
+    elif [ $# -eq 2 ]; then
+        file=$1
+        message=$2
+        git commit -m "$message" "$file" &> /dev/null
+    else
+        >&2 echo "Error: git_commit_one_file can take 1 or 2 arguments"
+        return 1
+    fi
+}
+
+git_reset_soft() {
+    git reset --soft
+}
+
+git_reset_hard() {
+    git reset --hard
+}
+
+git_cherry_pick() {
+    hash=$1
+    git cherry-pick "$hash" &> /dev/null
+}
+
+git_push() {
+    branch=$1
+    git push origin "$branch" &> /dev/null
+}
+
+git_push_new() {
+    branch=$1
+    git push -u origin "$branch" &> /dev/null
+}
+git_tag() {
+    tag=$1
+    git tag "$tag"
+}
+
+git_list_tags() {
+    git tag -l
+}
+
+git_log_one_file_grep() {
+    file=$1
+    rev=$2
+    pattern=$3
+    format=$4
+    git log --grep "$pattern" --format="$format" "$rev" -- "$file"
+}
+
+git_log_last_one_file() {
+    file=$1
+    rev=$2
+    format=$3
+    git log -n1 --format="$format" "$rev" -- "$file"
+}
+
+git_log_last_one_file_grep() {
+    file=$1
+    rev=$2
+    pattern=$3
+    format=$4
+    git log -n1 --grep "$pattern" --format="$format" "$rev" -- "$file"
+}
+
+git_diff_one_file() {
+    file=$1
+    rev1=$2
+    rev2=$3
+    git diff "$rev1..$rev2" -- "$file"
 }

@@ -1,5 +1,23 @@
 #!/bin/bash -e
 
+_show_help() {
+    exitcode=$1
+    cat <<EOF
+opsconf checkout BRANCH|TAG: change to given branch or tag
+EOF
+    exit "$exitcode"
+}
+
 run_cmd() {
-    git checkout "$@"
+    if [ "$#" -eq 1 ] ; then
+        if [ "$1" = "--help" ] ; then
+            _show_help 0
+        else
+            rev=$1
+        fi
+    else
+        _show_help 1
+    fi
+
+    git_checkout "$rev"
 }
