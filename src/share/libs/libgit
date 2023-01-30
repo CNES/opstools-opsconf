@@ -52,6 +52,11 @@ git_add_one_file() {
     git add "$file"
 }
 
+git_remove_one_file() {
+    file=$1
+    git rm "$file" &> /dev/null
+}
+
 git_commit_one_file() {
     if [ $# -eq 1 ]; then
         file=$1

@@ -7,6 +7,7 @@ OPSCONF_BRANCH_QUALIF=qualification
 OPSCONF_BRANCH_VALID=master
 
 OPSCONF_PREFIX_PATTERN="^v[0-9]\+: "
+OPSCONF_PREFIX_REMOVED="vZZ: "
 OPSCONF_HOOKDIR=$OPSCONF_DIR/githooks
 
 . "$(dirname "${BASH_SOURCE[0]}")/libgit"
@@ -72,7 +73,7 @@ EOF
         # si la branche existe
         if git_exist_branch "$branch" ; then
             log_debug "Changing to branch: $branch"
-            git_checkout "$branch" 
+            git_checkout "$branch"
             git_cherry_pick "$commit_hash"
             git_push "$branch"
             log_debug "Branch updated: $branch"
@@ -160,6 +161,25 @@ has_uptodate_hooks() {
     return 0
 }
 
+get_deletion_hash() {
+    file=$1
+    rev=$2
+    git_log_last_one_file_grep "$file" "$rev" "^$OPSCONF_PREFIX_REMOVED" "%H"
+}
+
+get_revision_range() {
+    file=$1
+    rev=$2
+
+    deletion_hash=$(get_deletion_hash "$file" "$rev")
+    if [ "$deletion_hash" = "" ]; then
+        revision_range="$rev"
+    else
+        revision_range="${deletion_hash}..$rev"
+    fi
+    echo "$revision_range"
+}
+
 prepend_file_version() {
     # Prepend to the commit message the version of the file ('v<VERSION>: ')
     # The version is calculated as "previous version +1", so it only works
@@ -175,7 +195,17 @@ prepend_file_version() {
         log_error "Empty commit. Aborting"
         return 1
     fi
-    previouscommitsubject=$(git_log_last_one_file "$filetoadd" "HEAD" "%s")
+
+    if [ ! -z "${OPSCONF_BYPASS_CHECK+x}" ] ; then
+        log_debug "By-passing checks and hooks"
+        cat <<EOF >$1
+$commit_msg
+EOF
+    return 0
+    fi
+
+    revision_range=$(get_revision_range "$filetoadd" "HEAD")
+    previouscommitsubject=$(git_log_last_one_file "$filetoadd" "$revision_range" "%s")
 
     previouscommitversion_withv=$(echo "$previouscommitsubject" | cut -d: -f1)
     previouscommitversion_nov=${previouscommitversion_withv/v/}
@@ -267,26 +297,32 @@ retrieve_version() {
     file=$2
     version=$(_prepend_v2version "$3")
 
-    if git_log_last_one_file_grep "$file" "HEAD" "$OPSCONF_PREFIX_PATTERN" "%s" | grep "^$version" ; then
+    revision_range=$(get_revision_range "$file" "HEAD")
+    src_branch_revision_range=$(get_revision_range "$file" "$src_branch")
+
+    if git_log_last_one_file_grep "$file" "$revision_range" "$OPSCONF_PREFIX_PATTERN" "%s" | grep "^$version" ; then
         log_info "$file is already in version $version. Nothing to do."
         return 0
-    elif git_log_one_file_grep "$file" "HEAD" "$OPSCONF_PREFIX_PATTERN" "%s" | grep "^$version" ; then
+    elif git_log_one_file_grep "$file" "$revision_range" "$OPSCONF_PREFIX_PATTERN" "%s" | grep "^$version" ; then
         log_error "$file is already in a latter version than $version. Aborting."
         return 1
     fi
 
     # get the last commit on the file, on our branch
-    current_hash=$(git_log_last_one_file_grep "$file" "HEAD" "$OPSCONF_PREFIX_PATTERN" "%H")
+    current_hash=$(git_log_last_one_file_grep "$file" "$revision_range" "$OPSCONF_PREFIX_PATTERN" "%H")
 
     # if we don't get one, let's pretend it's HEAD,
     # it means the file does not exist yet in this branch
     # So we create the v1 has the first version
     if [[ $current_hash = "" ]]; then
-        log_debug "The file does not exist on this branch: $file"
+        log_debug "The file does not exist on this branch. Will take the first version: $file"
         current_hash=$(git log --format=%H -n1 HEAD)
-        first_version_hash=$(git_log_last_one_file_grep "$file" "$src_branch" "^v1: " "%H")
-        first_version_commit_msg="$(git show -s --format=%B "$first_version_hash")"
-        first_version_commit_msg="${first_version_commit_msg/v1: /}"  # Remove "v1: " that will be added by the hooks
+        first_version_hash=$(git_log_last_one_file_grep "$file" "${src_branch_revision_range}" "^v1: " "%H")
+        if [ "${first_version_hash}" = "" ] ; then
+            log_error "v1 of $file does not exist in branch $src_branch"
+            return 1
+        fi
+    first_version_commit_msg="$(git show -s --format=%B "$first_version_hash")"
         first_version_user="$(git show -s --format="%an <%ae>" "$first_version_hash")"
         first_version_date="$(git show -s --format=%ci "$first_version_hash")"
 
@@ -296,12 +332,12 @@ retrieve_version() {
         git commit "$file" --date="${first_version_date}" --author="${first_version_user}" -m "${first_version_commit_msg}" > /dev/null
         unset OPSCONF_BYPASS_CHECK
     fi
-    current_hash_subject=$(git_log_last_one_file_grep "$file" "HEAD" "$OPSCONF_PREFIX_PATTERN" "%s")
-    current_hash_other=$(git_log_last_one_file_grep "$file" "$src_branch" "$current_hash_subject" "%H")
+    current_hash_subject=$(git_log_last_one_file_grep "$file" "$revision_range" "$OPSCONF_PREFIX_PATTERN" "%s")
+    current_hash_other=$(git_log_last_one_file_grep "$file" "${src_branch_revision_range}" "$current_hash_subject" "%H")
 
-    version_rev=$(git_log_last_one_file_grep "$file" "..$src_branch" "^$version: " "%H")
+    version_rev=$(git_log_last_one_file_grep "$file" "${src_branch_revision_range}" "^$version: " "%H")
     if [ "${version_rev}" = "" ] ; then
-        log_error "$version of $file does not exist"
+        log_error "$version of $file does not exist in branch $src_branch"
         return 1
     fi
     revs_to_retrieve=$(git_log_one_file_grep "$file" "$current_hash_other..$version_rev" "$OPSCONF_PREFIX_PATTERN" "%h" | tac | tr '\n' ' ')
@@ -325,7 +361,13 @@ rollback_to_version() {
     file=$1
     version=$(_prepend_v2version "$2")
     reason="$3"
-    version_hash=$(git_log_one_file_grep "$file" "HEAD" "^$version: " "%H")
+    branch=$(git_current_branch)
+    if [ "$(git ls-tree -r --name-only "$branch" -- "$file" )" != "$file" ] ; then
+        log_error "This is not a file, or is not available in the branch $branch: $file"
+        return 1
+    fi
+    revision_range=$(get_revision_range "$file" "HEAD")
+    version_hash=$(git_log_one_file_grep "$file" "$revision_range" "^$version: " "%H")
     if ! git diff HEAD.."$version_hash" -- "$file" | git apply ; then
         log_error "Rollback failed. Aborting."
         git_get_file_from_rev "$file" "HEAD"
@@ -339,11 +381,13 @@ Rolled-back to $version"
 list_available_versions() {
     branch=$1
     file=$2
+
     if [ "$(git ls-tree -r --name-only "$branch" -- "$file" )" != "$file" ] ; then
         log_error "This is not a file, or is not available in the branch $branch: $file"
         return 1
     fi
-    raw_logs=$(git_log_one_file_grep "$file" "$branch" "$OPSCONF_PREFIX_PATTERN" "%H,%s")
+    revision_range=$(get_revision_range "$file" "$branch")
+    raw_logs=$(git_log_one_file_grep "$file" "$revision_range" "$OPSCONF_PREFIX_PATTERN" "%H,%s")
 
     # For this given file, get all the hashes that are current to the given tag
     hash_tags=""
@@ -397,6 +441,20 @@ show_current_versions() {
 ${formated_logs}
 EOF
     fi
+}
+
+remove_file() {
+    file=$1
+    reason=$2
+    branch=$(git_current_branch)
+    if [ "$(git ls-tree -r --name-only "$branch" -- "$file" )" != "$file" ] ; then
+        log_error "File not found in the branch $branch: $file"
+        return 1
+    fi
+    git_remove_one_file "$file"
+    export OPSCONF_BYPASS_CHECK=yes
+    git_commit_one_file "$file" "${OPSCONF_PREFIX_REMOVED}${reason}"
+    unset OPSCONF_BYPASS_CHECK
 }
 
 diff_between_versions() {

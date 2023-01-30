@@ -4,7 +4,7 @@
 
 CURRENT_TEST=40_rollback
 
-pushd "$REPO_LOCAL"
+pushd "$REPO_LOCAL" > /dev/null
 git checkout work 2> /dev/null
 mkdir ${CURRENT_TEST}
 
@@ -50,4 +50,13 @@ if [ "$commit_msg" = "$expected_commit_msg" ]; then
 else
     log_result "KO"
 fi
-popd
+
+log_test "Rollback does not work on master branch"
+opsconf checkout master
+if ! opsconf rollback -m "test" $FILE v1 ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+
+popd > /dev/null

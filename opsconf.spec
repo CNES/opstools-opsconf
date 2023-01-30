@@ -51,6 +51,7 @@ cp -rf src/share/* $RPM_BUILD_ROOT/%{prefix}/share/opsconf/
 %{prefix}/share/opsconf/opsconf-liststates
 %{prefix}/share/opsconf/opsconf-log
 %{prefix}/share/opsconf/opsconf-qualify
+%{prefix}/share/opsconf/opsconf-remove
 %{prefix}/share/opsconf/opsconf-rollback
 %{prefix}/share/opsconf/opsconf-status
 %{prefix}/share/opsconf/opsconf-sync

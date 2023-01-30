@@ -16,6 +16,7 @@ Arguments (to work on files)
     commit: commit changes to a file
     log: show changelogs of a file
     diff: show difference between two versions of a file
+    remove: remove a file from the repository
     rollback: rollback a file to a given versions
     qualify: mark a file version as ready for qualification
     validate: mark a file version as validated of production use
@@ -63,6 +64,8 @@ main() {
             . $OPSCONF_DIR/opsconf-log ;;
         "diff")
             . $OPSCONF_DIR/opsconf-diff ;;
+        "remove")
+            . $OPSCONF_DIR/opsconf-remove ;;
         "rollback")
             . $OPSCONF_DIR/opsconf-rollback ;;
         "qualify")
