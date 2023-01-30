@@ -97,6 +97,13 @@ git_list_tags() {
     git tag -l
 }
 
+git_log_one_file() {
+    file=$1
+    rev=$2
+    format=$3
+    git log --format="$format" "$rev" -- "$file"
+}
+
 git_log_one_file_grep() {
     file=$1
     rev=$2
