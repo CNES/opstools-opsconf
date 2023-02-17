@@ -50,7 +50,7 @@ init_branches() {
         ROOT_BRANCH="$1"
         git_checkout "$ROOT_BRANCH"
         git_create_branch_orphan "$OPSCONF_BRANCH_WORK"
-        find -type f | grep -v ^./.git | xargs -I@ sh -c "git add @ && git commit @ -m \"v1: First version for '@'\" &> /dev/null"
+        find -type f | grep -v ^./.git/ | xargs -I@ sh -c "git add @ && git commit @ -m \"v1: First version for '@'\" &> /dev/null"
     else
         git_create_branch "$OPSCONF_BRANCH_WORK"
         touch "$(git_get_root)/README.md"
@@ -129,14 +129,16 @@ is_repo_empty() {
 }
 
 is_opsconf_repo() {
-    if git_exist_branch "$OPSCONF_BRANCH_WORK" && git_exist_branch "$OPSCONF_BRANCH_QUALIF" && git_exist_branch "$OPSCONF_BRANCH_VALID" ; then
-        filenb=$(git ls-files "$OPSCONF_BRANCH_WORK" -- .opsconf | wc -l)
+    git fetch > /dev/null
+    if git_exist_remote_branch "$OPSCONF_BRANCH_WORK" && git_exist_remote_branch "$OPSCONF_BRANCH_QUALIF" && git_exist_remote_branch "$OPSCONF_BRANCH_VALID" ; then
+        filenb=$(git ls-tree "origin/$OPSCONF_BRANCH_WORK" -- .opsconf | wc -l)
         if [ "$filenb" -eq 0 ] ; then
             return 1
         else
             return 0
         fi
     else
+        log_debug "I cannot be an opsconf repo: Missing branches"
         return 1
     fi
 }

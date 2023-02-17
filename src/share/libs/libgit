@@ -17,6 +17,11 @@ git_current_branch() {
     git rev-parse --abbrev-ref HEAD
 }
 
+git_exist_remote_branch() {
+    branch=$1
+    git show-ref --quiet "refs/remotes/origin/$branch"
+}
+
 git_exist_branch() {
     branch=$1
     git show-ref --quiet "refs/heads/$branch"
