@@ -46,6 +46,8 @@ run_cmd() {
         init_branches "$ROOT_BRANCH"
     fi
 
+    log_info "Force using hooks in .git/hooks"
+    git config --local core.hooksPath .git/hooks
     log_info "Updating hooks"
     HOOK_DST="${GIT_ROOT}/.git/hooks"
     for hook in "$HOOK_SRC"/* ; do

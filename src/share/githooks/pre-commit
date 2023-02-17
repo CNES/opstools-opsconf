@@ -18,7 +18,11 @@ set -e # exit on first error
 # Redirect output to stderr.
 exec 1>&2
 
-log_debug "githook::post-commit end"
+log_debug "githook::pre-commit end"
+
+log_debug "githook::run .githook/pre-commit"
+[[ -f .githooks/pre-commit ]] && .githooks/pre-commit
+
 check_branch_work
 check_branch_uptodate
 check_commit_unique_file
