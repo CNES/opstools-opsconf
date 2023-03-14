@@ -20,4 +20,5 @@ run_cmd() {
     fi
 
     git_tag "$tag"
+    git push origin "$tag"
 }
