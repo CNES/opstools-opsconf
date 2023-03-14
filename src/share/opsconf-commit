@@ -56,20 +56,29 @@ run_cmd() {
 
     ## Si recursif
     if [ "$recurse" -eq 0 ]; then
+        # Soit on a un fichier (ou un lien symbolique)
+        if [ -f "$file" ] || [ -L "$file" ] ; then
+            commit_file "$file" "$commit_msg"
         # Soit on a un dossier
-        if [ -d "$file" ] ; then
+        elif [ -d "$file" ] ; then
             # Dans ce cas on récurse sur les fichiers modifiés de ce dossier
             subfiles=$(git diff --name-only "$file")
 
             for f in $subfiles ; do
                 run_cmd -m "$commit_msg" "$f"
             done
-        # Soit on a un fichier
-        elif [ -f "$file" ] ; then
-            commit_file "$file" "$commit_msg"
+        # Soit autre chose... mais on ne sait pas traiter
+        else
+            log_error "This is not a file, link or directory: $file"
+            exit 1
         fi
-    # Si pas récursif, on se ramène au cas "fichier"
+    # Si pas récursif, on se ramène au cas "fichier/lien"
     else
-        commit_file "$file" "$commit_msg"
+        if [ -f "$file" ] || [ -L "$file" ] ; then
+            commit_file "$file" "$commit_msg"
+        else
+            log_error "This is not a file: $file"
+            exit 1
+        fi
     fi
 }
