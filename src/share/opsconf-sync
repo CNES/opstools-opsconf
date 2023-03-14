@@ -9,12 +9,17 @@ EOF
 }
 
 run_cmd() {
-    if [ $# -eq 1 ] && [ "$1" = "help" ]; then
-        _show_help 0
+    if [ $# -eq 0 ] ; then
+        remote="origin"
+    elif [ $# -eq 1 ] ; then
+        if [ "$1" = "help" ]; then
+            _show_help 0
+        else
+            remote="$1"
+        fi
     else
         _show_help 1
     fi
-    remote="origin"
 
     branch=$(git_current_branch)
 
