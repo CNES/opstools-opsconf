@@ -16,10 +16,25 @@ run_cmd() {
         _show_help 1
     fi
 
-    if ! is_current_branch_qualif ; then
+    if is_current_branch_work ; then
+        current_path="$(pwd)"
+        current_branch="$OPSCONF_BRANCH_WORK"
+        file_path="$current_path/$file"
+        file_path="${file_path/$(git_get_root)\//}"
+        cd "$(git_get_root)" &> /dev/null
+        opsconf checkout "$OPSCONF_BRANCH_QUALIF"
+        if opsconf qualify "$file_path" "$version" ; then
+            return_with_error="yes"
+        fi
+        opsconf checkout "$current_branch"
+        cd current_path &> /dev/null
+        if ! [ -z "${return_with_error}" ] ; then
+            exit 1
+        fi
+    elif is_current_branch_qualif ; then
+        retrieve_version "$OPSCONF_BRANCH_WORK" "$file" "$version"
+    else
         log_error "Qualifying a file can only be done on the \"$OPSCONF_BRANCH_QUALIF\" branch. Aborting."
         exit 1
     fi
-
-    retrieve_version "$OPSCONF_BRANCH_WORK" "$file" "$version"
 }
