@@ -19,7 +19,9 @@ commit_file() {
     else
         git_commit_one_file "$file" "$commit_msg"
     fi
-    log_info "File commited: \"$file\""
+    version=$(git_log_last_one_file_grep "$file" "HEAD" "$OPSCONF_PREFIX_PATTERN" "%s" | cut -d: -f1)
+
+    log_info "File commited: \"$file\", $version"
 }
 
 run_cmd() {
