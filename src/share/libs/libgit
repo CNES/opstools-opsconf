@@ -65,7 +65,7 @@ git_remove_one_file() {
 git_commit_one_file() {
     if [ $# -eq 1 ]; then
         file=$1
-        git commit "$file" &> /dev/null
+        git commit "$file" 2> /dev/null
     elif [ $# -eq 2 ]; then
         file=$1
         message=$2
