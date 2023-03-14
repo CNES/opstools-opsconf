@@ -20,4 +20,5 @@ run_cmd() {
     fi
 
     git_checkout "$rev"
+    opsconf sync &> /dev/null
 }
