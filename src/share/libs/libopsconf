@@ -435,7 +435,7 @@ list_current_versions() {
 
 show_current_versions() {
     rev=$1
-    line_to_show='echo -e "$1\t$(git log --format=%s -n1 "$2" -- "$1"|cut -d: -f1)"'
+    line_to_show='v_rev=$(git log --format=%s -n1 "$2" -- "$1"|cut -d: -f1) && v_work=$(git log --format=%s -n1 "work" -- "$1"|cut -d: -f1) && if [ "$v_rev" = "$v_work" ]; then echo -e "$1\t$v_rev" ; else echo -e "$1\t$v_rev*" ; fi'
     raw_logs=$(git ls-tree -r --name-only "$rev" | grep -v '^.opsconf$' | xargs -I@ sh -c "$line_to_show" sh @ "$rev")
     if [ -n "${raw_logs}" ] ; then
         formated_logs=$(echo "${raw_logs}" | sort | column -t -s $'\t' -o' | ')
