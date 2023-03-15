@@ -21,4 +21,5 @@ run_cmd() {
 
     git_checkout "$rev"
     opsconf sync &> /dev/null
+    log_info "You are now on branch $rev"
 }
