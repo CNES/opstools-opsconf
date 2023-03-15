@@ -25,6 +25,7 @@ else
 fi
 
 for branch in "qualification" "master" ; do
+    opsconf checkout work
     if [ "$branch" = "qualification" ] ; then
         cmd="qualify"
     elif [ "$branch" = "master" ]; then
@@ -35,13 +36,6 @@ for branch in "qualification" "master" ; do
     fi
 
     log_info "### BRANCH $branch ###"
-
-    log_test "Cannot $cmd file from branch work"
-    if ! opsconf "$cmd" "$FILE" 2 > /dev/null ; then
-        log_result "OK"
-    else
-        log_result "KO"
-    fi
 
     log_test "Branch $branch has no version of $FILE"
     opsconf checkout "$branch"
@@ -66,14 +60,14 @@ for branch in "qualification" "master" ; do
         log_result "KO"
     fi
 
-    log_test "Bring again same file, same version to branch $branch"
+    log_test "Bring again same file, same version to branch $branch succeeds but do not change $branch"
     if opsconf "$cmd" "$FILE" 5 && [ "$(opsconf log "$FILE" | wc -l)" -eq 5 ]; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
-    log_test "Bring again same file, previous version to branch $branch"
+    log_test "Bring again same file, previous version to branch $branch fails and do not change $branch"
     if ! opsconf "$cmd" "$FILE" 3 && [ "$(opsconf log "$FILE" | wc -l)" -eq 5 ]; then
         log_result "OK"
     else
@@ -94,6 +88,23 @@ for branch in "qualification" "master" ; do
     else
         log_result "KO"
     fi
+
+    log_test "Can $cmd file from branch work"
+    opsconf checkout work
+    if opsconf "$cmd" "$FILE" 8 ; then
+        log_result "OK"
+    else
+        log_result "KO"
+    fi
+
+    log_test "...and the command works successfully"
+    opsconf checkout $branch
+    if [ "$(opsconf log "$FILE" | wc -l)" -eq 8 ]; then
+        log_result "OK"
+    else
+        log_result "KO"
+    fi
+    opsconf checkout work > /dev/null
 
 done
 
