@@ -4,6 +4,8 @@ TEST_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 pushd "${TEST_DIR}" > /dev/null
 
+. env.sh
+
 # shellcheck disable=SC2010
 scripts=$(ls ./* | grep -v 'env.sh' | grep -v 'run_tests.sh')
 

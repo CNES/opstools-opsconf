@@ -1,2 +1,5 @@
+__pycache__/
+MANIFEST
 tests_exec_workspace
 build
+dist

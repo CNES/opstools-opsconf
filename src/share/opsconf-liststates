@@ -1,5 +1,0 @@
-#!/bin/bash -e
-
-run_cmd() {
-    log_error "NOT IMPLEMENTED YET"
-}

@@ -15,8 +15,9 @@ $ ./tests/run_tests.sh
 ## Comment utiliser sans installer?
 
 ```bash
-export PATH=$PATH:<repo_opsconf>/src/bin
+export PATH=<repo_opsconf>/src/bin:$PATH
 export OPSCONF_DIR=$<repo_opsconf>/src/share
+export PYTHONPATH=$<repo_opsconf>/src/lib:$PYTHONPATH
 ```
 
 Se placer le dépôt à gérer en conf et commencer à travailler.
@@ -73,21 +74,21 @@ Se placer le dépôt à gérer en conf et commencer à travailler.
 
 Les dépendances suivantes doivent être installées sur la machine en question
  * bash
+ * python3
  * git
 
 ### Description de l'architecture
 
-`Opsconf` est développé en bash. Il pourrait être envisagé de le porter en python dans le futur, mais cela nécessiterait d'ajouter GitPython dans ses dépendances.
+`Opsconf` est développé en python.
 
 Il repose sur `git` via des surcouches et des hooks, permettant d'assurer le fonctionnement attendu par les utilisateur, c'est à dire la gestion de version de fichiers unitairement.
 
 `Opsconf` est composé :
  * d'un exécutable `opsconf` (déployé dans `$PREFIX/bin/`)
- * d'une librarie `libopsconf` (déployée dans `$PREFIX/share/opsconf/libs/`)
- * d'un ensemble de scripts, appelés par l'exécutable principal (déployés dans `$PREFIX/share/opsconf/`)
- * de hooks (déployés dans `$PREFIX/share/opesconf/githooks`). Ces hooks seront copiés dans le dossier local au dépôt `$GITDIR/.git/hooks/`, lors de l'appel à la commande `opsconf init`.
+ * d'un package python `opsconf` (déployée dans `$PREFIX/lib/py`)
+ * de hooks (déployés dans `$PREFIX/share/opsconf/githooks`). Ces hooks seront copiés dans le dossier local au dépôt `$GITDIR/.git/hooks/`, lors de l'appel à la commande `opsconf init`.
 
-Les traitements git structurants permettant la gestion de configuration sont traités via les hooks afin que, si quelqu'un utilise directement git, la gestion de configuration ne soit pas mise en péril. L'exécutable et les scripts permettent de masquer la complexité de git et de fournir une interface utilisateur plus confortable.
+Les traitements git structurants permettant la gestion de configuration sont traités via les hooks afin que, si quelqu'un utilise directement git, la gestion de configuration ne soit pas mise en péril. L'exécutable et le package python permettent de masquer la complexité de git et de fournir une interface utilisateur plus confortable.
 
 Ainsi les hooks ont pour fonction: 
  * de s'assurer qu'un commit ne porte que sur un unique fichier

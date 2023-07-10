@@ -2,14 +2,13 @@
 
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 export PATH="$ROOT_DIR/src/bin:$PATH"
+export PYTHONPATH="$ROOT_DIR/src/lib:$PYTHONPATH"
 export OPSCONF_DIR="$ROOT_DIR/src/share"
 
 WORKSPACE="$ROOT_DIR/tests_exec_workspace"
 
 export REPO_REMOTE="$WORKSPACE/remote_dir.git"
 export REPO_LOCAL="$WORKSPACE/local_dir"
-
-. "${ROOT_DIR}/src/share/libs/libopsconf"
 
 lorem_ipsum() {
     nb_lines=$1
@@ -27,6 +26,18 @@ file_content_in_rev() {
     file=$1
     rev=$2
     git show "$rev:$file"
+}
+
+log_debug() {
+    echo "[DEBUG] $*"
+}
+
+log_info() {
+    echo "[DEBUG] $*"
+}
+
+log_error() {
+    echo "[ERROR] $*"
 }
 
 log_test() {

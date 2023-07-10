@@ -1,97 +1,75 @@
-#!/bin/bash -e
+#!/usr/bin/env python3
 
-if [ -z "${OPSCONF_DIR+x}" ] ; then
-    export OPSCONF_DIR="/usr/share/opsconf"
-fi
+import argparse
+import logging
+import os
+import sys
 
-PROGRAMNAME=$(basename "$0")
+import opsconf
+import opsconf.subcommand
 
-_show_help() {
-    exitcode=$1
-    cat <<EOF
-$PROGRAMNAME: Configuration management tool for operational data.
+OPSCONF_VERSION = opsconf.OPSCONFVERSION
+format = '[%(levelname)s] %(message)s'
+logging.basicConfig(format=format)
+LOGGER = logging.getLogger('opsconf')
 
-Arguments (to work on files)
-    sync: synchronize local and distant repositories
-    commit: commit changes to a file
-    log: show changelogs of a file
-    diff: show difference between two versions of a file
-    remove: remove a file from the repository
-    rollback: rollback a file to a given versions
-    qualify: mark a file version as ready for qualification
-    validate: mark a file version as validated of production use
+if __name__ == "__main__":
+    commonParser = argparse.ArgumentParser(add_help=False)
+    commonParser.add_argument('-v', '--verbose', help='add debug logs', action='store_true')
+    commonParser.add_argument('-vv', '--very-verbose', help='add debug logs also in git', action='store_true')
 
-Arguments (to work on the repository)
-    init: initialize the local repository
-    status: list the current version in given state (tag or branch)
-    liststates: list the repository states
-    checkout: get to a given repository state
-    tag: label the current state of the whole repository
+    parser = argparse.ArgumentParser(
+        description="File-centric Version Control System. Thought for operational data.",
+        )
 
-Other possible arguments
-    help: show this help
-EOF
-    exit "$exitcode"
-}
+    subparsers = parser.add_subparsers(title="Opsconf commands", dest='command')
 
-_is_opsconf_repo() {
-    # Check that this is a git repo and that the hooks are installed
-    # If the hooks are missing, opsconf won't work correctly, so we abort
-    if is_git_repo && has_uptodate_hooks ; then
-        return 0
-    else
-        return 1
-    fi
-}
+    parsers = {}
+    parsers['sync'] = subparsers.add_parser('sync', help="synchronize local and distant repositories", parents=[commonParser])
+    parsers['commit'] = subparsers.add_parser('commit', help="commit changes to a file", parents=[commonParser])
+    parsers['log'] = subparsers.add_parser('log', help="show changelogs of a file", parents=[commonParser])
+    parsers['diff'] = subparsers.add_parser('diff', help="show difference between two versions of a file", parents=[commonParser])
+    parsers['remove'] = subparsers.add_parser('remove', help="remove a file from the repository", parents=[commonParser])
+    parsers['rollback'] = subparsers.add_parser('rollback', help="rollback a file to a given versions", parents=[commonParser])
+    parsers['qualify'] = subparsers.add_parser('qualify', help="mark a file version as ready for qualification", parents=[commonParser])
+    parsers['validate'] = subparsers.add_parser('validate', help="mark a file version as validated of production use", parents=[commonParser])
 
-main() {
-    . $OPSCONF_DIR/libs/libopsconf 
+    parsers['init'] = subparsers.add_parser('init', help="initialize the local repository", parents=[commonParser])
+    parsers['status'] = subparsers.add_parser('status', help="list the current version in given state (tag or branch)", parents=[commonParser])
+    parsers['liststates'] = subparsers.add_parser('liststates', help="list the repository states", parents=[commonParser])
+    parsers['checkout'] = subparsers.add_parser('checkout', help="get to a given repository state", parents=[commonParser])
+    parsers['tag'] = subparsers.add_parser('tag', help="label the current state of the whole repository", parents=[commonParser])
 
-    if [ "$#" -eq 0 ]; then
-        _show_help 1
-    fi
+    for command in parsers:
+        module = getattr(opsconf.subcommand, command)
+        module.setupParser(parsers[command])
 
-    subcommand=$1
-    shift
-    case "$subcommand" in
-        "init" )
-            . $OPSCONF_DIR/opsconf-init ;;
-        "sync")
-            . $OPSCONF_DIR/opsconf-sync ;;
-        "commit")
-            . $OPSCONF_DIR/opsconf-commit ;;
-        "log")
-            . $OPSCONF_DIR/opsconf-log ;;
-        "diff")
-            . $OPSCONF_DIR/opsconf-diff ;;
-        "remove")
-            . $OPSCONF_DIR/opsconf-remove ;;
-        "rollback")
-            . $OPSCONF_DIR/opsconf-rollback ;;
-        "qualify")
-            . $OPSCONF_DIR/opsconf-qualify ;;
-        "validate")
-            . $OPSCONF_DIR/opsconf-validate ;;
-        "tag")
-            . $OPSCONF_DIR/opsconf-tag ;;
-        "liststates")
-            . $OPSCONF_DIR/opsconf-liststates ;;
-        "status")
-            . $OPSCONF_DIR/opsconf-status ;;
-        "checkout")
-            . $OPSCONF_DIR/opsconf-checkout ;;
-        "help")
-            _show_help 0 ;;
-        *)
-            _show_help 1 ;;
-    esac
+    parser.add_argument('-V', '--version', help='show the version', action='version', version="%(prog)s "+OPSCONF_VERSION)
 
-    if ! _is_opsconf_repo && [ "$subcommand" != "init" ]; then
-        log_error "This folder is not a git repository or is missing its hooks. Run 'opsconf init'."
-        exit 1
-    fi
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+    args = parser.parse_args()
 
-    run_cmd "$@" 
-}
+    if args.verbose or 'OPSCONF_DEBUG' in os.environ:
+        LOGGER.setLevel(logging.DEBUG)
+        logging.getLogger('opsconf.libgit').setLevel(logging.INFO)
+        LOGGER.debug("Let's be verbose")
+    elif args.very_verbose:
+        LOGGER.setLevel(logging.DEBUG)
+        logging.getLogger('opsconf.libgit').setLevel(logging.DEBUG)
+        LOGGER.debug("Let's be very verbose")
+    else:
+        LOGGER.setLevel(logging.INFO)
+    
+    if args.command != 'init' and not opsconf.isOpsConfRepo(): 
+        LOGGER.error("This folder is not a git repository or is missing its hooks. Run 'opsconf init'")
+        sys.exit(1)
 
-main "$@"
+    module = getattr(opsconf.subcommand, args.command)
+    try:
+        module.runCmd(args)
+    except opsconf.OpsconfFatalError as e:
+        LOGGER.error(e)
+        sys.exit(1)
+

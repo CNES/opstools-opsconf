@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python3
 #
 # An example hook script to check the commit log message.
 # Called by "git commit" with one argument, the name of the file
@@ -6,20 +6,19 @@
 # status after issuing an appropriate message if it wants to stop the
 # commit.  The hook is allowed to edit the commit message file.
 #
-# OPSCONFVERSION=0.1
+# OPSCONFVERSION=0.2.0
 
-if [ -z "${OPSCONF_DIR+x}" ] ; then
-    . /usr/share/opsconf/libs/libopsconf
-else
-    . "$OPSCONF_DIR/libs/libopsconf"
-fi
+import logging
+import sys
 
-set -e # Exit on first error
+import opsconf
 
-# Redirect output to stderr.
-exec 1>&2
+format = '[%(levelname)s] %(message)s'
+logging.basicConfig(format=format)
+LOGGER = logging.getLogger('opsconf')
 
-log_debug "githook::commit-msg start"
-prepend_file_version "$1"
-log_debug "githook::commit-msg end"
-
+try:
+    opsconf.prependFileVersion(sys.argv[1])
+except opsconf.OpsconfFatalError as e:
+    LOGGER.error(e)
+    sys.exit(1)

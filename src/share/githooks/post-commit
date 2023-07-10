@@ -1,23 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env python3
 #
 # An example hook script to verify what is about to be committed.
 # Called by "git commit" with no arguments.  The hook should
 # exit with non-zero status after issuing an appropriate message if
 # it wants to stop the commit.
 #
-# OPSCONFVERSION=0.1
+# OPSCONFVERSION=0.2.0
 
-if [ -z "${OPSCONF_DIR+x}" ] ; then
-    . /usr/share/opsconf/libs/libopsconf
-else
-    . "$OPSCONF_DIR/libs/libopsconf"
-fi
+import logging
+import sys
 
-set -e # exit on first error
+import opsconf
 
-# Redirect output to stderr.
-exec 1>&2
+format = '[%(levelname)s] %(message)s'
+logging.basicConfig(format=format)
+LOGGER = logging.getLogger('opsconf')
 
-log_debug "githook::post-commit start"
-do_push
-log_debug "githook::post-commit end"
+try:
+    opsconf.doPush()
+except opsconf.OpsconfFatalError as e:
+    LOGGER.error(e)
+    sys.exit(1)
