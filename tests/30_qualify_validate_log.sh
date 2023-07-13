@@ -104,6 +104,23 @@ for branch in "qualification" "master" ; do
     else
         log_result "KO"
     fi
+
+    log_test "Test $cmd without a version argument"
+    opsconf checkout $branch
+    if opsconf "$cmd" "$FILE" ; then
+        log_result "OK"
+    else
+        log_result "KO"
+    fi
+
+    log_test "...and the command works successfully"
+    opsconf checkout $branch
+    if [ "$(opsconf log "$FILE" | wc -l)" -eq 10 ]; then
+        log_result "OK"
+    else
+        log_result "KO"
+    fi
+
     opsconf checkout work > /dev/null
 
 done

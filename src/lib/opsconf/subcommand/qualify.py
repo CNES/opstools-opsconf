@@ -15,7 +15,7 @@ def setupParser(parentParser):
     """
     parentParser.description = "Set the version VERSION of the file FILE as 'in qualification'."
     parentParser.add_argument('file', metavar='FILE', help="the file to qualify")
-    parentParser.add_argument('version', metavar='VERSION', help="the version to qualify")
+    parentParser.add_argument('version', metavar='VERSION', help="the version to qualify (last by default)", nargs='?')
 
 
 def runCmd(args):
@@ -24,8 +24,15 @@ def runCmd(args):
     Args:
         args (argparse.Namespace): the namespace returned by the parse_args() method
     """
-    version = opsconf.versionToInt(args.version)
     filename = args.file
+    if args.version is None:
+        lastCommitMsg = libgit.logLastOneFile(filename, opsconf.OPSCONF_BRANCH_WORK,
+                                              pattern=opsconf.OPSCONF_PREFIX_PATTERN,
+                                              outputFormat="%s")
+        version = opsconf.getVersionFromCommitMsg(lastCommitMsg)
+    else:
+        version = opsconf.versionToInt(args.version)
+
     if opsconf.isCurrentBranchWork():
         _caseBranchIsWork(opsconf.OPSCONF_BRANCH_QUALIF, filename, version)
     elif opsconf.isCurrentBranchQualif():

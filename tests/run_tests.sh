@@ -18,7 +18,7 @@ fi
 
 for s in $scripts; do 
     # Run all 0* files that are needed for initialization
-    if [[ "$s" =~ ^./0.* ]] ; then
+    if [[ "$s" =~ ^./0.*\.sh ]] ; then
         echo "[INFO] Run script $s"
         "$s"
     else
