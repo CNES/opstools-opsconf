@@ -25,39 +25,9 @@ def runCmd(args):
         args (argparse.Namespace): the namespace returned by the parse_args() method
     """
     filename = args.file
-    if args.version is None:
-        lastCommitMsg = libgit.logLastOneFile(filename, opsconf.OPSCONF_BRANCH_WORK,
-                                              pattern=opsconf.OPSCONF_PREFIX_PATTERN,
-                                              outputFormat="%s")
-        version = opsconf.getVersionFromCommitMsg(lastCommitMsg)
-    else:
-        version = opsconf.versionToInt(args.version)
+    version = args.version
 
-    if opsconf.isCurrentBranchWork():
-        _caseBranchIsWork(opsconf.OPSCONF_BRANCH_VALID, filename, version)
-    elif opsconf.isCurrentBranchValid():
-        opsconf.retrieveVersion(opsconf.OPSCONF_BRANCH_WORK, filename, version)
-    else:
-        raise opsconf.OpsconfFatalError("Validating a file can only be done on the '{}' branch. Aborting.".format(opsconf.OPSCONF_BRANCH_VALID))
+    if libgit.getCurrentBranch() not in [opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_VALID]:
+        raise opsconf.OpsconfFatalError("Validating a file can only be done on branch '{}' or '{}'. Aborting.".format(opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_VALID))
 
-
-def _caseBranchIsWork(targetBranch, filename, version):
-    currentPath = os.getcwd()
-    currentBranch = opsconf.OPSCONF_BRANCH_WORK
-
-    LOGGER.debug("We are in branch %s", currentBranch)
-    filePath = os.path.join(currentPath, filename)
-    gitRootDir = libgit.getGitRoot()
-
-    if filePath.startswith(gitRootDir):
-        filePath.replace(gitRootDir, '', 1)
-
-    try:
-        os.chdir(gitRootDir)
-        libgit.checkoutRevision(targetBranch)
-        LOGGER.debug("We changed to branch %s", targetBranch)
-        opsconf.retrieveVersion(opsconf.OPSCONF_BRANCH_WORK, filename, version)
-    finally:
-        libgit.checkoutRevision(currentBranch)
-        LOGGER.debug("We are back in branch %s", currentBranch)
-        os.chdir(currentPath)
+    opsconf.promoteVersion(opsconf.OPSCONF_BRANCH_VALID, filename, version)

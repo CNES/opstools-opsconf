@@ -702,3 +702,59 @@ def diffBetweenVersions(filename, version1, version2):
     h1 = libgit.logLastOneFile(filename, 'HEAD', pattern="^v{}: ".format(version1), outputFormat="%H")
     h2 = libgit.logLastOneFile(filename, 'HEAD', pattern="^v{}: ".format(version2), outputFormat="%H")
     return libgit.diffOneFile(filename, h1, h2)
+
+
+def promoteVersion(targetBranch, filename, version=None):
+    """Promote a version of a file to the target branch.
+
+    This function is used to 'qualify' or 'validate' a file version.
+
+    Args:
+        targetBranch (str): the branch where to bring the version.
+        filename (str): the path of the file of interest.
+        version (int or str, optional): the version to promote. Defaults to None. In this case,
+                                        the last version from the file in the WORK branch is promoted.
+
+    Raises:
+        OpsconfFatalError: if the function is called from a branch different from targetBranch or WORK,
+                           this exception is raised.
+    """
+    # If version is not given, get the last version from the WORK branch
+    if version is None:
+        lastCommitMsg = libgit.logLastOneFile(filename, OPSCONF_BRANCH_WORK,
+                                              pattern=OPSCONF_PREFIX_PATTERN,
+                                              outputFormat="%s")
+        versionToPromote = getVersionFromCommitMsg(lastCommitMsg)
+    else:
+        versionToPromote = versionToInt(version)
+
+    if isCurrentBranchWork():
+        # if on the WORK branch, move to the target branch to retrieve the file
+        # then come back to the WORK branch
+        currentPath = os.getcwd()
+        currentBranch = OPSCONF_BRANCH_WORK
+
+        LOGGER.debug("We are in branch %s", currentBranch)
+        filePath = os.path.join(currentPath, filename)
+        gitRootDir = libgit.getGitRoot()
+
+        if filePath.startswith(gitRootDir):
+            filePath.replace(gitRootDir, '', 1)
+
+        try:
+            # We first need to move the git root of the repository, in case it does not exist
+            # in the WORK branch
+            os.chdir(gitRootDir)
+            libgit.checkoutRevision(targetBranch)
+            LOGGER.debug("We changed to branch %s", targetBranch)
+            retrieveVersion(OPSCONF_BRANCH_WORK, filename, versionToPromote)
+        finally:
+            # Move back to where we were at the beginning
+            libgit.checkoutRevision(currentBranch)
+            LOGGER.debug("We are back in branch %s", currentBranch)
+            os.chdir(currentPath)
+
+    elif libgit.getCurrentBranch() == targetBranch:
+        retrieveVersion(OPSCONF_BRANCH_WORK, filename, versionToPromote)
+    else:
+        raise OpsconfFatalError("This action can only be done on branch {} or {}. Currently on branch {}. Aborting.".format(OPSCONF_BRANCH_WORK, targetBranch, libgit.getCurrentBranch()))
