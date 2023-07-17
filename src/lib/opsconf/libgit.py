@@ -184,6 +184,17 @@ def existFileInBranch(filename, branch, remote='origin'):
         return True
 
 
+def listChangedFiles():
+    """List the repository's file that are not added nor committed.
+
+    Returns:
+        list of str: the file paths.
+    """
+    modified, _, _ = _runCmd(['git', 'ls-files', '-m'])
+    untracked, _, _ = _runCmd(['git', 'ls-files', '-o', '--exclude-standard'])
+    return modified.splitlines() + untracked.splitlines()
+
+
 def listAllFilesInRevision(revision):
     """List the repository's files at the given revision.
 

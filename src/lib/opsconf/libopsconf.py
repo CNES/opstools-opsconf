@@ -15,6 +15,7 @@ OPSCONF_HOOKDIR = "{}/githooks".format(os.getenv('OPSCONF_DIR', '/usr/share/opsc
 
 OPSCONF_SYMBOL_REMOVED = '!'
 OPSCONF_SYMBOL_NEWER = '*'
+OPSCONF_SYMBOL_CHANGED = '+'
 
 
 LOGGER = logging.getLogger('opsconf')
@@ -628,7 +629,9 @@ def showCurrentVersions(revision):
         list of dicts: each line as {'file': <str>, 'version': <int>, 'removed': <bool>, 'newer': <bool>}.
                        'removed' is True if the file was deleted from the WORK branch.
                        'newer' is True if a newer version exists in the WORK branch.
+                       'changed' is True if a the file has a non committed version.
     """
+    changedFileList = libgit.listChangedFiles()
     fileList = libgit.listAllFilesInRevision(revision)
     fileVersionList = []
     for filename in sorted(fileList):
@@ -644,8 +647,12 @@ def showCurrentVersions(revision):
             'file': filename,
             'version': lastVersion,
             'removed': False,
-            'newer': False
+            'newer': False,
+            'changed': False,
         }
+        if filename in changedFileList:
+            fileVersion['changed'] = True
+
         if lastVersionInWork is None:
             fileVersion['removed'] = True
         elif lastVersion != lastVersionInWork:

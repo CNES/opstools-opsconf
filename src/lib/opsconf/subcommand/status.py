@@ -29,4 +29,7 @@ def runCmd(args):
             versionString = "v{}{}".format(fileVersion['version'], opsconf.OPSCONF_SYMBOL_NEWER)
         else:
             versionString = "v{}".format(fileVersion['version'])
+        
+        if fileVersion['changed']:
+            versionString += opsconf.OPSCONF_SYMBOL_CHANGED
         print('| {:{maxlength}} | {:6} |'.format(fileVersion['file'], versionString, maxlength=maxlength))
