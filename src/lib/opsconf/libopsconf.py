@@ -397,7 +397,9 @@ def sync(localBranch, remote='origin'):
     remoteBranch = "{}/{}".format(remote, localBranch)
 
     LOGGER.debug("Comparing %s and %s", remoteBranch, localBranch)
-    if libgit.isAncestor(remoteBranch, ancestor=localBranch):
+    if libgit.getLocalBranchTip() == libgit.getRemoteBranchTip():
+        LOGGER.debug("Local and remote branch are in sync")
+    elif libgit.isAncestor(remoteBranch, ancestor=localBranch):
         LOGGER.info("Local is behind the remote repository")
         libgit.merge(remoteBranch, ffOnly=True)
         LOGGER.info("Local was updated")
