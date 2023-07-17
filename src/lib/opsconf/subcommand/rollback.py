@@ -1,16 +1,16 @@
 import opsconf
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Create a new version of FILE with previous version VERSION, with the justification REASON"
-    parentParser.add_argument('-m', metavar='REASON', help="the reason for rolling-back", required=True, dest="reason")
-    parentParser.add_argument('file', metavar='FILE', help="the file to rollback")
-    parentParser.add_argument('version', metavar='VERSION', help="the version to rollback")
+    parser.description = "Create a new version of FILE with previous version VERSION, with the justification REASON"
+    parser.add_argument('-m', metavar='REASON', help="the reason for rolling-back", required=True, dest="reason")
+    parser.add_argument('file', metavar='FILE', help="the file to rollback")
+    parser.add_argument('version', metavar='VERSION', help="the version to rollback")
 
 
 def runCmd(args):

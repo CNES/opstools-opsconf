@@ -7,17 +7,17 @@ import opsconf.libgit as libgit
 LOGGER = logging.getLogger('opsconf.commit')
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Commit the single file FILE or the files contained in the directory DIRECTORY with the commit message MESSAGE"
+    parser.description = "Commit the single file FILE or the files contained in the directory DIRECTORY with the commit message MESSAGE"
 
-    parentParser.add_argument('-m', help="the commit message", metavar="MESSAGE", dest="message")
-    parentParser.add_argument('-r', help="commit recursively", action='store_true', dest="recursive")
-    parentParser.add_argument("file", help="the file to commit (or directory if option '-r' is used", metavar="FILE|DIRECTORY")
+    parser.add_argument('-m', help="the commit message", metavar="MESSAGE", dest="message")
+    parser.add_argument('-r', help="commit recursively", action='store_true', dest="recursive")
+    parser.add_argument("file", help="the file to commit (or directory if option '-r' is used", metavar="FILE|DIRECTORY")
 
 
 def runCmd(args):

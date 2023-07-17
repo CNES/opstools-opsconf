@@ -1,14 +1,14 @@
 import opsconf
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Show the versions of the files of the current state of the repo, or given branch BRANCH or tag TAG"
-    parentParser.add_argument('revision', metavar='BRANCH|TAG', help="change to given branch or tag", nargs='?', default="HEAD")
+    parser.description = "Show the versions of the files of the current state of the repo, or given branch BRANCH or tag TAG"
+    parser.add_argument('revision', metavar='BRANCH|TAG', help="change to given branch or tag", nargs='?', default="HEAD")
 
 
 def runCmd(args):

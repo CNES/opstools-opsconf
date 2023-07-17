@@ -6,14 +6,14 @@ import opsconf.libgit as libgit
 LOGGER = logging.getLogger('opsconf.checkout')
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Change to given BRANCH or TAG"
-    parentParser.add_argument('revision', metavar='BRANCH|TAG', help="the branch or tag to checkout")
+    parser.description = "Change to given BRANCH or TAG"
+    parser.add_argument('revision', metavar='BRANCH|TAG', help="the branch or tag to checkout")
 
 
 def runCmd(args):

@@ -1,14 +1,14 @@
 import opsconf.libgit as libgit
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Tag the current state of the repository with tag TAG"
-    parentParser.add_argument('tag', help="the name of the tag", metavar='TAG')
+    parser.description = "Tag the current state of the repository with tag TAG"
+    parser.add_argument('tag', help="the name of the tag", metavar='TAG')
 
    
 def runCmd(args):

@@ -5,15 +5,15 @@ import opsconf
 LOGGER = logging.getLogger('opsconf.remove')
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Remove file FILE with the justification REASON"
-    parentParser.add_argument('-m', metavar='REASON', help="the reason for removal", required=True, dest="reason")
-    parentParser.add_argument('file', metavar='FILE', help="the file to remove")
+    parser.description = "Remove file FILE with the justification REASON"
+    parser.add_argument('-m', metavar='REASON', help="the reason for removal", required=True, dest="reason")
+    parser.add_argument('file', metavar='FILE', help="the file to remove")
 
 
 def runCmd(args):

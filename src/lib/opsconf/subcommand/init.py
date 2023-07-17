@@ -11,14 +11,14 @@ HOOK_SRC = opsconf.OPSCONF_HOOKDIR
 LOGGER = logging.getLogger('opsconf.init')
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Initialize (or re-iniialize the repository)."
-    parentParser.add_argument('--root-branch', metavar='BRANCH', help="the branch used to initialize '{}' branch with".format(opsconf.OPSCONF_BRANCH_WORK))
+    parser.description = "Initialize (or re-iniialize the repository)."
+    parser.add_argument('--root-branch', metavar='BRANCH', help="the branch used to initialize '{}' branch with".format(opsconf.OPSCONF_BRANCH_WORK))
 
 
 def runCmd(args):

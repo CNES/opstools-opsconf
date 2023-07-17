@@ -7,15 +7,15 @@ import opsconf.libgit as libgit
 LOGGER = logging.getLogger('opsconf.log')
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Check existing versions of file FILE in the current branch (or in all branches if \"--all\")"
-    parentParser.add_argument('file', help="the file to apply the command to", metavar="FILE")
-    parentParser.add_argument('-a', '--all', help="check in all branches", action='store_true', dest='allVersions')
+    parser.description = "Check existing versions of file FILE in the current branch (or in all branches if \"--all\")"
+    parser.add_argument('file', help="the file to apply the command to", metavar="FILE")
+    parser.add_argument('-a', '--all', help="check in all branches", action='store_true', dest='allVersions')
 
 def runCmd(args):
     """Run the command of the current operation

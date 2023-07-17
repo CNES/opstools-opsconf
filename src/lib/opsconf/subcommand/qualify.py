@@ -7,15 +7,15 @@ import opsconf.libgit as libgit
 LOGGER = logging.getLogger('opsconf.qualify')
 
 
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "Set the version VERSION of the file FILE as 'in qualification'."
-    parentParser.add_argument('file', metavar='FILE', help="the file to qualify")
-    parentParser.add_argument('version', metavar='VERSION', help="the version to qualify (last by default)", nargs='?')
+    parser.description = "Set the version VERSION of the file FILE as 'in qualification'."
+    parser.add_argument('file', metavar='FILE', help="the file to qualify")
+    parser.add_argument('version', metavar='VERSION', help="the version to qualify (last by default)", nargs='?')
 
 
 def runCmd(args):

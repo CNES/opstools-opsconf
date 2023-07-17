@@ -1,10 +1,10 @@
-def setupParser(parentParser):
+def setupParser(parser):
     """Setup the parser with the details of the current operation
 
     Args:
-        parentParser (argparse.ArgumentParser): the parser to setup
+        parser (argparse.ArgumentParser): the parser to setup
     """
-    parentParser.description = "NOT IMPLEMENTED YET"
+    parser.description = "NOT IMPLEMENTED YET"
     
 
 def runCmd(args):
