@@ -40,9 +40,12 @@ if __name__ == "__main__":
     parsers['checkout'] = subparsers.add_parser('checkout', help="get to a given repository state", parents=[commonParser])
     parsers['tag'] = subparsers.add_parser('tag', help="label the current state of the whole repository", parents=[commonParser])
 
+    parsers['toolbox'] = subparsers.add_parser('toolbox', help="scripts of the opsconf toolbox", parents=[commonParser])
+
     for command in parsers:
         module = getattr(opsconf.subcommand, command)
         module.setupParser(parsers[command])
+    opsconf.subcommand.toolbox.setupSubParsers(parsers['toolbox'], commonParser)
 
     parser.add_argument('-V', '--version', help='show the version', action='version', version="%(prog)s "+OPSCONF_VERSION)
 
@@ -52,15 +55,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.verbose or 'OPSCONF_DEBUG' in os.environ:
-        LOGGER.setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
         logging.getLogger('opsconf.libgit').setLevel(logging.INFO)
         LOGGER.debug("Let's be verbose")
     elif args.very_verbose:
-        LOGGER.setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
         logging.getLogger('opsconf.libgit').setLevel(logging.DEBUG)
         LOGGER.debug("Let's be very verbose")
     else:
-        LOGGER.setLevel(logging.INFO)
+        logging.getLogger().setLevel(logging.INFO)
     
     if args.command != 'init' and not opsconf.isOpsConfRepo(): 
         LOGGER.error("This folder is not a git repository or is missing its hooks. Run 'opsconf init'")

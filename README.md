@@ -35,7 +35,7 @@ Se placer le dépôt à gérer en conf et commencer à travailler.
     # .... Edition de la FCP
     $ opsconf commit MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp
     # un éditeur s'ouvre pour indiquer le message de commit
-    [INFO] File commited: "MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp"
+    [INFO] File committed: "MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp"
     ```
 
  3. Modification d'un fichier et création d'une nouvelle version
@@ -43,7 +43,7 @@ Se placer le dépôt à gérer en conf et commencer à travailler.
     $ vi MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp
     # .... Edition de la FCP
     $ opsconf commit -m "PULP_FT-1232 Ajoute la fonction demandée" MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp
-    [INFO] File commited: "MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp"
+    [INFO] File committed: "MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp"
     ``` 
     **Remarque:** plusieurs fichiers peuvent être commités en même temps en ajoutant l'option `-r` à la commande `opsconf commit`.
 
@@ -68,6 +68,54 @@ Se placer le dépôt à gérer en conf et commencer à travailler.
     v2: <message de la v2>
     v3: <message de la v3>
     ```
+
+## Etendre opsconf avec des modules python "maison"
+
+Opsconf est prévu pour pouvoir être étendu, via sa 'toolbox'. On l'utilise avec la commande:
+
+```bash
+$ opsconf toolbox <NOM_SCRIPT> <ARGS>
+```
+
+Pour ajouter un script spécifique, ajouter un module Python sous
+`$PYTHONPATH/opsconf/subcommand/toolbox/<NOM_SCRIPT>.py` en respectant le template suivant:
+```python
+"""Module to define the toolbox script <NOM_SCRIPT>."""
+
+LOGGER = logging.getLogger('opsconf.toolbox.<NOM_SCRIPT>')
+
+def setupParser(parser):
+    """Setup the parser with the details of the current operation
+
+    Args:
+        parser (argparse.ArgumentParser): the parser to setup
+    """
+    parser.description = "<WHAT THIS SCRIPT DOES>"
+    parser.add_argument('<ARGUMENT TO ADD: CF. ARGPARSE DOCUMENTATION>')
+
+
+def runCmd(args):
+    """Run the command of the current operation
+
+    Args:
+        args (argparse.Namespace): the namespace returned by the parse_args() method
+    """
+    <THE CODE THAT IS CALLED WHEN EXECUTED>
+```
+
+Pour vérifier que cela fonctionne, la commande suivante doit proposer votre nouveau script:
+```bash
+$ opsconf toolbox -h
+```
+
+Et la commande suivante doit indiquer comment l'utiliser:
+```bash
+$ opsconf toolbox <NOM_SCRIPT> -h
+```
+
+Cet ajout peut être fait via RPM dédié, Ansible ou amené par défaut dans opsconf.
+
+
 ## Architecture
 
 ### Dépendences
@@ -85,7 +133,7 @@ Il repose sur `git` via des surcouches et des hooks, permettant d'assurer le fon
 
 `Opsconf` est composé :
  * d'un exécutable `opsconf` (déployé dans `$PREFIX/bin/`)
- * d'un package python `opsconf` (déployée dans `$PREFIX/lib/py`)
+ * d'un package python `opsconf` (déployée dans `$PYTHONPATH/`)
  * de hooks (déployés dans `$PREFIX/share/opsconf/githooks`). Ces hooks seront copiés dans le dossier local au dépôt `$GITDIR/.git/hooks/`, lors de l'appel à la commande `opsconf init`.
 
 Les traitements git structurants permettant la gestion de configuration sont traités via les hooks afin que, si quelqu'un utilise directement git, la gestion de configuration ne soit pas mise en péril. L'exécutable et le package python permettent de masquer la complexité de git et de fournir une interface utilisateur plus confortable.

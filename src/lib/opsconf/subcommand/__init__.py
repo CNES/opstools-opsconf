@@ -1,6 +1,7 @@
 """Package containing all the subcommands that can be run by opsconf"""
 
 from . import (
+    # standard commands
     checkout,
     commit,
     diff,
@@ -13,5 +14,7 @@ from . import (
     status,
     sync,
     tag,
-    validate
+    validate,
+    # other commands
+    toolbox
     )
