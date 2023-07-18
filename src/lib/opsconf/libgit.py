@@ -357,20 +357,18 @@ def removeOneFile(filename):
     _runCmd(['git', 'rm', filename])
 
 
-def commitOneFile(filename, message=None, date=None, author=None):
+def commitOneFile(filename, message, date=None, author=None):
     """Commit the changes on a single file.
 
     Args:
         filename (str): the path of the file to commit.
-        message (str, optional): the commit message. Defaults to None.
+        message (str): the commit message.
         date (str, optional): the date of the commit. Defaults to None.
                               If not given, the current date is used
         author (str, optional): the author of the commit. Defaults to None.
                                 If not given, the author configured in git is used
     """
-    cmd = ['git', 'commit']
-    if message is not None:
-        cmd += ['-m', message]
+    cmd = ['git', 'commit', '-m', message]
     if date is not None:
         cmd += ['--date', date]
     if author is not None:
