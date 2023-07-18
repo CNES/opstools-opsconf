@@ -8,6 +8,8 @@ pushd "$REPO_LOCAL" > /dev/null
 git checkout work 2> /dev/null
 
 FILEPATTERN="${CURRENT_TEST}/file<>.txt"
+INPUTFILE="file_input.txt"
+
 mkdir -p "$(dirname ${FILEPATTERN})"
 
 log_info "Initialize the work branch"
@@ -45,19 +47,21 @@ done
     fi
     
     log_test "$cmd: Dry-run works from a file"
-    opsconf status > file_input.txt
-    if opsconf toolbox $cmd --dry-run file_input.txt ; then
+    opsconf status > "$INPUTFILE"
+    if opsconf toolbox $cmd --dry-run "$INPUTFILE" ; then
         log_result "OK"
     else
         log_result "KO"
     fi
     
-    log_test "$cmd: Opersation succeeds from a file"
-    if opsconf toolbox $cmd file_input.txt ; then
+    log_test "$cmd: Operation succeeds from a file"
+    if opsconf toolbox "$cmd $INPUTFILE" ; then
         log_result "OK"
     else
         log_result "KO"
     fi
+
+    rm "$INPUTFILE"
 done
 
 popd > /dev/null
