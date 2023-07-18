@@ -1,3 +1,4 @@
+"""Library for opsconf functions. This module relies on opsconf.libgit."""
 import logging
 import os
 
@@ -72,7 +73,7 @@ def initBranches(rootBranch=None):
             libgit.existLocalBranch(OPSCONF_BRANCH_VALID)):
         raise OpsconfFatalError("One of the following branch exists, aborting: {}, {}, {}"
                                 .format(OPSCONF_BRANCH_WORK, OPSCONF_BRANCH_QUALIF, OPSCONF_BRANCH_VALID)
-                                )
+                               )
 
     if os.path.isfile("{}/.opsconf".format(libgit.getGitRoot)):
         raise OpsconfFatalError(".opsconf file already exists. Aborting.")
@@ -759,4 +760,6 @@ def promoteVersion(targetBranch, filename, version=None):
     elif libgit.getCurrentBranch() == targetBranch:
         retrieveVersion(OPSCONF_BRANCH_WORK, filename, versionToPromote)
     else:
-        raise OpsconfFatalError("This action can only be done on branch {} or {}. Currently on branch {}. Aborting.".format(OPSCONF_BRANCH_WORK, targetBranch, libgit.getCurrentBranch()))
+        raise OpsconfFatalError("This action can only be done on branch {} or {}. Currently on branch {}. Aborting."
+                                .format(OPSCONF_BRANCH_WORK, targetBranch, libgit.getCurrentBranch())
+                               )

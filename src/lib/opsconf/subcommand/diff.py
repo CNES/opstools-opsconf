@@ -1,3 +1,5 @@
+"""Module to define the subcommand diff."""
+
 import opsconf
 
 
@@ -8,9 +10,10 @@ def setupParser(parser):
         parser (argparse.ArgumentParser): the parser to setup
     """
     parser.description = "Show the différence of FILE between version VERSION_OLD and VERSION_NEW"
-    parser.add_argument('file', metavar='FILE', help="the file on which to do the diff")
-    parser.add_argument('version_old', metavar='VERSION_OLD', help="the old version to compare to")
-    parser.add_argument('version_new', metavar='VERSION_NEW', help="the new version to compare to (default HEAD)", nargs='?', default="HEAD")
+    parser.add_argument('file', help="the file on which to do the diff", metavar='FILE')
+    parser.add_argument('version_old', help="the old version to compare to", metavar='VERSION_OLD')
+    parser.add_argument('version_new', help="the new version to compare to (default HEAD)",
+                        metavar='VERSION_NEW', nargs='?', default="HEAD")
 
 
 def runCmd(args):

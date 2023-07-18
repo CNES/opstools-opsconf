@@ -1,7 +1,9 @@
+"""Module to define the subcommand checkout."""
+
 import logging
 
 import opsconf
-import opsconf.libgit as libgit
+from opsconf import libgit
 
 LOGGER = logging.getLogger('opsconf.checkout')
 

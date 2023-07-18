@@ -1,8 +1,10 @@
+"""Module to define the subcommand qualify."""
+
 import logging
 import os
 
 import opsconf
-import opsconf.libgit as libgit
+from opsconf import libgit
 
 LOGGER = logging.getLogger('opsconf.qualify')
 
@@ -28,6 +30,8 @@ def runCmd(args):
     version = args.version
 
     if libgit.getCurrentBranch() not in [opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_QUALIF]:
-        raise opsconf.OpsconfFatalError("Qualifying a file can only be done on branch '{}' or '{}'. Aborting.".format(opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_VALID))
+        raise opsconf.OpsconfFatalError("Qualifying a file can only be done on branch '{}' or '{}'. Aborting."
+                                        .format(opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_VALID)
+                                       )
 
     opsconf.promoteVersion(opsconf.OPSCONF_BRANCH_QUALIF, filename, version)

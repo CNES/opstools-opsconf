@@ -1,4 +1,6 @@
-import opsconf.libgit as libgit
+"""Module to define the subcommand tag."""
+
+from opsconf import libgit
 
 
 def setupParser(parser):

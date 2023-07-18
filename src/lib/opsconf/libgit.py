@@ -1,3 +1,5 @@
+"""Python wrapper around git operations that are usefull for opsconf"""
+
 import logging
 import shlex
 import subprocess
@@ -394,7 +396,7 @@ def resetTree(hard=False, soft=False, mixed=False):
         ValueError: if more than one option is set to True, this exception is raised.
     """
     cmd = ['git', 'reset']
-    if soft and hard or soft and mixed or hard and mixed:
+    if sum([hard, soft, mixed]) > 1:
         raise ValueError("gitReset: only one of 'hard' or 'soft' or 'mixed' can be True")
     if hard:
         cmd.append('--hard')
@@ -546,4 +548,3 @@ def applyDiff(diff):
     else:
         diffBytes = diff
     _runCmd(['git', 'apply'], inputContent=diffBytes)
-

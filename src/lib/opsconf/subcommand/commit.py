@@ -1,8 +1,10 @@
+"""Module to define the subcommand commit."""
+
 import logging
 import os
 
 import opsconf
-import opsconf.libgit as libgit
+from opsconf import libgit
 
 LOGGER = logging.getLogger('opsconf.commit')
 
@@ -37,11 +39,11 @@ def runCmd(args):
     libgit.resetTree(mixed=True)
 
     if recursive and os.path.isdir(filename):
-         # We search only changed file
-         changedFiles = libgit.listChangedFiles()
+        # We search only changed file
+        changedFiles = libgit.listChangedFiles()
 
-         for f in changedFiles:
-             _commitFile(f, message)
+        for f in changedFiles:
+            _commitFile(f, message)
     else:
         _commitFile(filename, message=message)
     

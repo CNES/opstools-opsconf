@@ -1,3 +1,5 @@
+"""Package containing all the subcommands that can be run by opsconf"""
+
 from . import (
     checkout,
     commit,

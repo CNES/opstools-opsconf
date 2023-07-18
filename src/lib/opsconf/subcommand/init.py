@@ -1,10 +1,12 @@
+"""Module to define the subcommand init."""
+
 import logging
 import os
 import shutil
 import stat
 
 import opsconf
-import opsconf.libgit as libgit
+from opsconf import libgit
 
 HOOK_SRC = opsconf.OPSCONF_HOOKDIR
 
@@ -18,7 +20,8 @@ def setupParser(parser):
         parser (argparse.ArgumentParser): the parser to setup
     """
     parser.description = "Initialize (or re-iniialize the repository)."
-    parser.add_argument('--root-branch', metavar='BRANCH', help="the branch used to initialize '{}' branch with".format(opsconf.OPSCONF_BRANCH_WORK))
+    parser.add_argument('--root-branch', help="the branch used to initialize '{}' branch with".format(opsconf.OPSCONF_BRANCH_WORK),
+                        metavar='BRANCH')
 
 
 def runCmd(args):

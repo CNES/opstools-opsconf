@@ -1,3 +1,5 @@
+"""Module to define the subcommand status."""
+
 import opsconf
 
 

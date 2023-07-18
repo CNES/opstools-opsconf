@@ -1,3 +1,5 @@
+"""Module to define the subcommand rollback."""
+
 import opsconf
 
 

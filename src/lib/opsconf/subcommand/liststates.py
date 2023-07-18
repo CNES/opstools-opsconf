@@ -1,3 +1,5 @@
+"""Module to define the subcommand liststates."""
+
 def setupParser(parser):
     """Setup the parser with the details of the current operation
 
@@ -13,4 +15,5 @@ def runCmd(args):
     Args:
         args (argparse.Namespace): the namespace returned by the parse_args() method
     """
+    print(args)
     raise NotImplementedError("NOT IMPLEMENTED YET")

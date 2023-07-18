@@ -1,5 +1,7 @@
+"""Module to define the subcommand sync."""
+
 import opsconf
-import opsconf.libgit as libgit
+from opsconf import libgit
 
 
 def setupParser(parser):
