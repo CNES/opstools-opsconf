@@ -378,6 +378,49 @@ def commitOneFile(filename, message, date=None, author=None):
     _runCmd(cmd)
 
 
+def addNoteToCommit(commitHash, noteMessage):
+    """Add a note to a given commit.
+
+    Args:
+        commitHash (str): the commit hash to which to add a note.
+        noteMessage (str): the text from the note.
+    """
+    _runCmd(['git', 'notes', 'append', '-m', noteMessage, commitHash])
+
+
+def pushNotes(remote="origin"):
+    """Push the notes to the remote
+
+    Args:
+        remote (str, optional): the remote where to push the notes. Defaults to 'origin'.
+    """
+    _runCmd(['git', 'push', remote, 'refs/notes/commits'])
+
+
+def pullNotes(remote="origin"):
+    """Pull the notes to the remote
+
+    Args:
+        remote (str, optional): the remote where to push the notes. Defaults to 'origin'.
+    """
+    _runCmd(['git', 'fetch', remote, 'refs/notes/*:refs/notes/*'])
+
+
+def getNotesFromCommit(commitHash):
+    """Get the notes from a given commit.
+
+    Args:
+        commitHash (str): the hash of the commit from which to get the notes.
+
+    Returns:
+        list of str: the notes of the commit (split by '\n\n')
+    """
+    # if the commit has no note, the command returns 1
+    # with raiseException=False, stdout will be empty
+    stdout, _, _ = _runCmd(['git', 'notes', 'show', commitHash], raiseException=False)
+    return stdout.split('\n\n')
+
+
 def resetTree(hard=False, soft=False, mixed=False):
     """Reset the repository to it's HEAD state.
 

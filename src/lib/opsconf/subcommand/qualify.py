@@ -16,8 +16,11 @@ def setupParser(parser):
         parser (argparse.ArgumentParser): the parser to setup
     """
     parser.description = "Set the version VERSION of the file FILE as 'in qualification'."
-    parser.add_argument('file', metavar='FILE', help="the file to qualify")
-    parser.add_argument('version', metavar='VERSION', help="the version to qualify (last by default)", nargs='?')
+    parser.add_argument('-m', help="an optional reason for the validation",
+                        metavar='MESSAGE', dest='message')
+    parser.add_argument('file', help="the file to qualify", metavar='FILE')
+    parser.add_argument('version', help="the version to qualify (last by default)",
+                        metavar='VERSION', nargs='?')
 
 
 def runCmd(args):
@@ -28,10 +31,11 @@ def runCmd(args):
     """
     filename = args.file
     version = args.version
+    message = args.message
 
     if libgit.getCurrentBranch() not in [opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_QUALIF]:
         raise opsconf.OpsconfFatalError("Qualifying a file can only be done on branch '{}' or '{}'. Aborting."
                                         .format(opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_VALID)
                                        )
 
-    opsconf.promoteVersion(opsconf.OPSCONF_BRANCH_QUALIF, filename, version)
+    opsconf.promoteVersion(opsconf.OPSCONF_BRANCH_QUALIF, filename, version, message)

@@ -395,6 +395,8 @@ def sync(localBranch, remote='origin'):
         OpsconfFatalError: if the synchronization cannot be automated, this exception is raised.
     """
     libgit.fetch(remote, branch=localBranch)
+    libgit.pullNotes(remote)
+
     remoteBranch = "{}/{}".format(remote, localBranch)
 
     LOGGER.debug("Comparing %s and %s", remoteBranch, localBranch)
@@ -429,6 +431,9 @@ def retrieveVersion(sourceBranch, filename, version):
 
     Raises:
         OpsconfFatalError: if the retrieval is not possible, this exception is raised.
+
+    Returns:
+        str: the hash of the last created commit (or None if no commit was created).
     """
     # Bring a file version and its associated history from one branch to
     # the current one.
@@ -447,7 +452,7 @@ def retrieveVersion(sourceBranch, filename, version):
         LOGGER.debug("The file does not exist on this branch. Will take the first version: %s", filename)
 
         # we take the last commit of the repository
-        lastHash = libgit.logLastOneFile(libgit.getGitRoot(), "HEAD", outputFormat="%H")
+        lastHashBeforeRetrieval = libgit.logLastOneFile(libgit.getGitRoot(), "HEAD", outputFormat="%H")
 
         # get the first version from this file
         try:
@@ -479,7 +484,7 @@ def retrieveVersion(sourceBranch, filename, version):
         raise OpsconfFatalError("{} is already in a latter version than {}. Aborting.".format(filename, version))
     else:
         # get the last commit on the file, on our branch
-        lastHash = libgit.logLastOneFile(filename, revisionRange, pattern=OPSCONF_PREFIX_PATTERN, outputFormat="%H")
+        lastHashBeforeRetrieval = libgit.logLastOneFile(filename, revisionRange, pattern=OPSCONF_PREFIX_PATTERN, outputFormat="%H")
 
     lastVersionSubject = libgit.logLastOneFile(filename, revisionRange, pattern=OPSCONF_PREFIX_PATTERN, outputFormat="%s")
     try:
@@ -502,10 +507,16 @@ def retrieveVersion(sourceBranch, filename, version):
 
     libgit.push(libgit.getCurrentBranch())
 
-    pickedLog = libgit.logOneFile(filename, "{}..HEAD".format(lastHash), outputFormat='%s')
+    pickedLog = libgit.logOneFile(filename, "{}..HEAD".format(lastHashBeforeRetrieval), outputFormat='%H %s')
     pickedLog.reverse()
-    pickedLog = [ '    {}'.format(log) for log in pickedLog ]
-    LOGGER.info("Retrieved changes of %s:\n%s", filename, '\n'.join(pickedLog))
+
+    # we have a list of [ '%H %s' ], for instance [ 'e2...dfa v3: the reason of the change', ... ]
+    # we want only the versions message (=%s) part
+    pickedLogMessages = [ '    {}'.format(log.split(' ', 1)[1]) for log in pickedLog ]
+    LOGGER.info("Retrieved changes of %s:\n%s", filename, '\n'.join(pickedLogMessages))
+    # we want only the versions message (=%h) part of the last commit
+    lastHashAfterRetrieval = pickedLog[-1].split(' ', 1)[0]
+    return lastHashAfterRetrieval
 
 
 def cleanLocalChange(filename):
@@ -622,17 +633,23 @@ def listCurrentVersions(filename):
     return listAvailaibleVersions(branch, filename)
 
 
-def showCurrentVersions(revision):
+def showCurrentVersions(revision, withNotes=False):
     """Show the last versions of all the files in a revision.
 
     Args:
         revision (str): a revision (commit, branch, tag).
+        withNotes (bool): whether to attach the 'git notes' with them. Defaults to False.
 
     Returns:
-        list of dicts: each line as {'file': <str>, 'version': <int>, 'removed': <bool>, 'newer': <bool>}.
-                       'removed' is True if the file was deleted from the WORK branch.
-                       'newer' is True if a newer version exists in the WORK branch.
-                       'changed' is True if a the file has a non committed version.
+        list of dicts: each line as
+                        {
+                            'file': <str>,  # the path of the file
+                            'version': <int>,  # the current version of the file
+                            'removed': <bool>,  # True if the file was deleted from the WORK branch
+                            'newer': <bool>,  # True if a newer version exists in teh WORK branch
+                            'changed': <bool>,  # True if the file has non committed changes
+                            'notes': <list of str>  # The list of notes associated to the version
+                        }.
     """
     changedFileList = libgit.listChangedFiles()
     fileList = libgit.listAllFilesInRevision(revision)
@@ -641,17 +658,25 @@ def showCurrentVersions(revision):
         if filename == ".opsconf":
             continue
 
-        lastCommitMsg = libgit.logLastOneFile(filename, revision, outputFormat='%s')
+        lastCommitHashAndMsg = libgit.logLastOneFile(filename, revision, outputFormat='%H %s')
+        lastCommitHash, lastCommitMsg = lastCommitHashAndMsg.split(' ', 1)
         lastVersion = getVersionFromCommitMsg(lastCommitMsg)
 
         lastCommitMsgInWork = libgit.logLastOneFile(filename, OPSCONF_BRANCH_WORK, outputFormat='%s')
         lastVersionInWork = getVersionFromCommitMsg(lastCommitMsgInWork)
+
+        if withNotes:
+            notes = libgit.getNotesFromCommit(lastCommitHash)
+        else:
+            notes = []
+
         fileVersion = {
             'file': filename,
             'version': lastVersion,
             'removed': False,
             'newer': False,
             'changed': False,
+            'notes': notes
         }
         if filename in changedFileList:
             fileVersion['changed'] = True
@@ -707,7 +732,7 @@ def diffBetweenVersions(filename, version1, version2):
     return libgit.diffOneFile(filename, h1, h2)
 
 
-def promoteVersion(targetBranch, filename, version=None):
+def promoteVersion(targetBranch, filename, version=None, message=None):
     """Promote a version of a file to the target branch.
 
     This function is used to 'qualify' or 'validate' a file version.
@@ -717,6 +742,7 @@ def promoteVersion(targetBranch, filename, version=None):
         filename (str): the path of the file of interest.
         version (int or str, optional): the version to promote. Defaults to None. In this case,
                                         the last version from the file in the WORK branch is promoted.
+        message (str, optional): a message to attach to the version promotion. Defaults to None.
 
     Raises:
         OpsconfFatalError: if the function is called from a branch different from targetBranch or WORK,
@@ -731,6 +757,7 @@ def promoteVersion(targetBranch, filename, version=None):
     else:
         versionToPromote = versionToInt(version)
 
+    lastHashAfterRetrieval = None
     if isCurrentBranchWork():
         # if on the WORK branch, move to the target branch to retrieve the file
         # then come back to the WORK branch
@@ -750,7 +777,7 @@ def promoteVersion(targetBranch, filename, version=None):
             os.chdir(gitRootDir)
             libgit.checkoutRevision(targetBranch)
             LOGGER.debug("We changed to branch %s", targetBranch)
-            retrieveVersion(OPSCONF_BRANCH_WORK, filename, versionToPromote)
+            lastHashAfterRetrieval = retrieveVersion(OPSCONF_BRANCH_WORK, filename, versionToPromote)
         finally:
             # Move back to where we were at the beginning
             libgit.checkoutRevision(currentBranch)
@@ -758,8 +785,12 @@ def promoteVersion(targetBranch, filename, version=None):
             os.chdir(currentPath)
 
     elif libgit.getCurrentBranch() == targetBranch:
-        retrieveVersion(OPSCONF_BRANCH_WORK, filename, versionToPromote)
+        lastHashAfterRetrieval = retrieveVersion(OPSCONF_BRANCH_WORK, filename, versionToPromote)
     else:
         raise OpsconfFatalError("This action can only be done on branch {} or {}. Currently on branch {}. Aborting."
                                 .format(OPSCONF_BRANCH_WORK, targetBranch, libgit.getCurrentBranch())
                                )
+
+    if lastHashAfterRetrieval is not None and message is not None:
+        libgit.addNoteToCommit(lastHashAfterRetrieval, message)
+        libgit.pushNotes()
