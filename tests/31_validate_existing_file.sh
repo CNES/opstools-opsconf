@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+# Validate a file that was created before the opsconf initialization
 . env.sh
 
 CURRENT_TEST=before_opsconf
@@ -34,3 +35,4 @@ else
     log_result "KO"
 fi
 
+popd > /dev/null

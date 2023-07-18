@@ -3,3 +3,4 @@ MANIFEST
 tests_exec_workspace
 build
 dist
+tests/tests_results.txt

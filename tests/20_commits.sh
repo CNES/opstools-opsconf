@@ -4,7 +4,7 @@
 
 CURRENT_TEST=20_commits
 
-pushd "$REPO_LOCAL"
+pushd "$REPO_LOCAL" > /dev/null
 git checkout work 2> /dev/null
 mkdir ${CURRENT_TEST}
 
@@ -85,4 +85,4 @@ else
     log_result "KO"
 fi
 
-popd
+popd > /dev/null

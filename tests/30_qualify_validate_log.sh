@@ -125,4 +125,4 @@ for branch in "qualification" "master" ; do
 
 done
 
-popd
+popd > /dev/null
