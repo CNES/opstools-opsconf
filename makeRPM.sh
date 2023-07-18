@@ -5,7 +5,7 @@ if [ -z "$RELEASE" ] ; then
 fi
 
 if [ -z "$PYTHON_VERSION" ] ; then
-    PYTHON_VERSION=python3.4
+    PYTHON_VERSION=python3.6
 fi
 
 $PYTHON_VERSION setup.py bdist_rpm --python $PYTHON_VERSION --release $RELEASE
