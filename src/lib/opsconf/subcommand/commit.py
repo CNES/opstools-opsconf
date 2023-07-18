@@ -48,7 +48,7 @@ def runCmd(args):
             _commitFile(f, message)
     else:
         _commitFile(filename, message=message)
-    
+
 
 def _commitFile(filename, message=None):
     """_summary_
@@ -63,7 +63,7 @@ def _commitFile(filename, message=None):
     # we only know how to deal with files and links
     if not os.path.islink(filename) and not os.path.isfile(filename):
         raise opsconf.OpsconfFatalError("This is not a file or link: {}".format(filename))
-    
+
     libgit.addOneFile(filename)
     LOGGER.debug("File added: \"%s\"", filename)
     libgit.commitOneFile(filename, message)

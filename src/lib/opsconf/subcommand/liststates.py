@@ -7,7 +7,7 @@ def setupParser(parser):
         parser (argparse.ArgumentParser): the parser to setup
     """
     parser.description = "NOT IMPLEMENTED YET"
-    
+
 
 def runCmd(args):
     """Run the command of the current operation

@@ -12,7 +12,7 @@ def setupParser(parser):
     parser.description = "Tag the current state of the repository with tag TAG"
     parser.add_argument('tag', help="the name of the tag", metavar='TAG')
 
-   
+
 def runCmd(args):
     """Run the command of the current operation
 

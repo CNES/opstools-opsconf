@@ -18,14 +18,14 @@ else
 fi
 
 
-for s in $scripts; do 
+for s in $scripts; do
     # Run all 0* files that are needed for initialization
     if [[ "$s" =~ ^./0.*\.sh ]] ; then
         echo "[INFO] Run script $s" | tee -a "${TESTS_RESULTS}"
         "$s"
     else
         # Run if at least a filter matches
-        for f in $filter ; do 
+        for f in $filter ; do
             if [[ "$s" =~ .*"$f".* ]] ; then
                 echo "[INFO] Run script $s" | tee -a "${TESTS_RESULTS}"
                 "$s"

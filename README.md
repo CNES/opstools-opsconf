@@ -6,7 +6,7 @@ Un outil de gestion de configuration pour les données opérationnelles.
 
 ## Comment tester ?
 
-Lancer les tests auto : 
+Lancer les tests auto :
 
 ```
 $ ./tests/run_tests.sh
@@ -44,13 +44,13 @@ Se placer le dépôt à gérer en conf et commencer à travailler.
     # .... Edition de la FCP
     $ opsconf commit -m "PULP_FT-1232 Ajoute la fonction demandée" MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp
     [INFO] File committed: "MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp"
-    ``` 
+    ```
     **Remarque:** plusieurs fichiers peuvent être commités en même temps en ajoutant l'option `-r` à la commande `opsconf commit`.
 
  4. Rollback d'une version précédente
     ```bash
     $ opsconf rollback -m "PULP_FT-1232 La version 2 ne convient pas" MIG/MIG1/FCP/DHS/DHS_TEST_CONNECTION.fcp
-    ``` 
+    ```
 
  5. Mise en qualification de la v1 d'un fichier
     ```bash
@@ -138,7 +138,7 @@ Il repose sur `git` via des surcouches et des hooks, permettant d'assurer le fon
 
 Les traitements git structurants permettant la gestion de configuration sont traités via les hooks afin que, si quelqu'un utilise directement git, la gestion de configuration ne soit pas mise en péril. L'exécutable et le package python permettent de masquer la complexité de git et de fournir une interface utilisateur plus confortable.
 
-Ainsi les hooks ont pour fonction: 
+Ainsi les hooks ont pour fonction:
  * de s'assurer qu'un commit ne porte que sur un unique fichier
  * de renommer le commit de façon à ce qu'il porte un numéro de version (v1, v2, v3...)
  * de s'assurer avant et après le commit que le dépôt local est synchronisé avec le dépôt central.
@@ -152,7 +152,7 @@ Le scénario ci-dessus est le suivant:
 * On crée 2 versions du fichier "fichier2" (`opsconf commit`).
 * On lance un essai pour qualifier les fichiers "fichier1" (en v2) et "fichier2" (en v1) (`opsconf qualify`). On taggue cet état (`opsconf tag`).
 * Il y a un bug sur "fichier1", on revient dans work et on crée une 3e version du fichier "fichier1", qu'on ramène ensuite en qualif (`opsconf commit` + `opsconf qualify`).
-* La validation c'est bien passée. On taggue (`opsconf tag`). 
+* La validation c'est bien passée. On taggue (`opsconf tag`).
 * Suite à analyse, on déduit que le fichier "fichier2" n'est pas valide.
 * On récupère l'état de ce tag (sauf "fichier2" qui est considéré comme non valide") et on le passe comme validé sur la branche master (`opsconf validate`).
 

@@ -33,7 +33,7 @@ else
 fi
 
 log_test "It is possible to validate again a file that was removed"
-opsconf validate "$FILE" v3 
+opsconf validate "$FILE" v3
 if [ "$(opsconf log $FILE | wc -l)" -eq 3 ] ; then
     log_result "OK"
 else

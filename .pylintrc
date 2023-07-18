@@ -18,7 +18,7 @@ ignore=CVS
 # Pickle collected data for later comparisons.
 persistent=yes
 
-# List of plugins (as comma separated values of python modules names) to load, 
+# List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
 #load-plugins=pylint.extensions.check_elif,cnes_checker
 

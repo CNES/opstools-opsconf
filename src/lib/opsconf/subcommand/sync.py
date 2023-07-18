@@ -22,5 +22,5 @@ def runCmd(args):
     """
     remote = args.remote
     currentBranch = libgit.getCurrentBranch()
-    
+
     opsconf.sync(currentBranch, remote)

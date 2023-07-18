@@ -64,8 +64,8 @@ if __name__ == "__main__":
         LOGGER.debug("Let's be very verbose")
     else:
         logging.getLogger().setLevel(logging.INFO)
-    
-    if args.command != 'init' and not opsconf.isOpsConfRepo(): 
+
+    if args.command != 'init' and not opsconf.isOpsConfRepo():
         LOGGER.error("This folder is not a git repository or is missing its hooks. Run 'opsconf init'")
         sys.exit(1)
 

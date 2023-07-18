@@ -47,10 +47,10 @@ def runCmd(args):
             raise opsconf.OpsconfFatalError("This repo is not made for opsconf. To allow migration, use the '--rot-branch BRANCH' option")
         LOGGER.info("Porting standard git repository to opsconf")
         opsconf.initBranches(rootBranch)
-        
+
     LOGGER.info("Force using hooks in .git/hooks")
     libgit.setConfig('core.hooksPath', '.git/hooks')
-    
+
     LOGGER.info("Updating hooks")
     hookDestination = os.path.join(gitRoot, ".git/hooks")
     for hook in os.listdir(HOOK_SRC):
