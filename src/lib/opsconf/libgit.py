@@ -179,11 +179,8 @@ def existFileInBranch(filename, branch, remote='origin'):
     Returns:
         bool: True if the file was found. False otherwise.
     """
-    stdout, _, _ = _runCmd(['git', 'ls-tree', '{}/{}'.format(remote, branch), '--', filename])
-    if stdout == "":
-        return False
-    else:
-        return True
+    stdout, _, _ = _runCmd(['git', 'ls-tree', '-r', '--name-only', '{}/{}'.format(remote, branch), '--', filename])
+    return stdout == filename
 
 
 def listChangedFiles():
