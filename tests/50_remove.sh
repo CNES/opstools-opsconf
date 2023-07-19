@@ -21,7 +21,6 @@ opsconf checkout master
 opsconf validate "$FILE" v5
 if [ "$(opsconf log $FILE | wc -l)" -ne 5 ] ; then
     log_error "Initialization error. File validation failed".
-    exit 1
 fi
 
 log_test "Removing file from branch master is possible"

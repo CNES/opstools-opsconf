@@ -23,39 +23,39 @@ for k in {1..5} ; do
     done
 done
 
- for operation in "validate" "qualify" ; do
+for operation in "validate" "qualify" ; do
     cmd="${operation}FromFile"
     log_test "$cmd: Dry-run works from stdin"
-    if opsconf status | opsconf toolbox $cmd --dry-run ; then
+    if opsconf status --to-csv | opsconf toolbox $cmd --dry-run 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
     log_test "$cmd: Dry-run fails if the input is wrong from stdin"
-    if ! opsconf status | sed 's/v1 /v23 /' | opsconf toolbox $cmd --dry-run ; then
+    if ! opsconf status --to-csv | sed 's/;1;/;23;/' | opsconf toolbox $cmd --dry-run 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
     log_test "$cmd: Operation succeeds from the stdin (promote only v1)"
-    if opsconf status | sed 's/| v. /| v1 |/' | opsconf toolbox $cmd ; then
+    if opsconf status --to-csv | sed 's/;[:digit:];/;1;/' | opsconf toolbox $cmd 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
     log_test "$cmd: Dry-run works from a file"
-    opsconf status > "$INPUTFILE"
-    if opsconf toolbox $cmd --dry-run "$INPUTFILE" ; then
+    opsconf status --to-csv > "$INPUTFILE"
+    if opsconf toolbox $cmd --dry-run "$INPUTFILE" 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
     log_test "$cmd: Operation succeeds from a file"
-    if opsconf toolbox "$cmd $INPUTFILE" ; then
+    if opsconf toolbox $cmd "$INPUTFILE" 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"

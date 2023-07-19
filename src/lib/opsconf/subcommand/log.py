@@ -1,5 +1,6 @@
 """Module to define the subcommand log."""
 
+import csv
 import logging
 import sys
 
@@ -16,8 +17,9 @@ def setupParser(parser):
         parser (argparse.ArgumentParser): the parser to setup
     """
     parser.description = "Check existing versions of file FILE in the current branch (or in all branches if \"--all\")"
-    parser.add_argument('file', help="the file to apply the command to", metavar="FILE")
     parser.add_argument('-a', '--all', help="check in all branches", action='store_true', dest='allVersions')
+    parser.add_argument('--to-csv', help="output in csv", action='store_true', dest='toCsv')
+    parser.add_argument('file', help="the file to apply the command to", metavar="FILE")
 
 def runCmd(args):
     """Run the command of the current operation
@@ -27,18 +29,53 @@ def runCmd(args):
     """
     allVersions = args.allVersions
     filename = args.file
+    toCsv = args.toCsv
 
     if allVersions:
         branch = opsconf.OPSCONF_BRANCH_WORK
-        versionList = opsconf.listAllVersions(filename)
+        versionListLastToFirst = opsconf.listAllVersions(filename)
     else:
         branch = libgit.getCurrentBranch()
-        versionList = opsconf.listCurrentVersions(filename)
+        versionListLastToFirst = opsconf.listCurrentVersions(filename)
 
-    #if sys.stdout.isatty:
-    #    print("On branch {}:".format(branch))
+    # We want the versions from first to last
+    versionList = reversed(versionListLastToFirst)
+
     LOGGER.info("On branch %s", branch)
+    if toCsv:
+        _csvPrint(versionList)
+    else:
+        _tablePrint(versionList)
+
+
+def _csvPrint(versionList):
+    """Internal function to print to the stdout as CSV.
+
+    Args:
+        versionList (list of dict): the list to print.
+    """
+    csvWriter = csv.writer(sys.stdout, dialect='excel', delimiter=";")
+
+    fieldnames = ['version', 'subject', 'tags']
+    csvWriter.writerow(fieldnames)
+
     for version in versionList:
-        print('| {:5} | {:40} | {:20} |'.format(version['version'],
-                                                version['subject'],
-                                                ' '.join(version['tags'])))
+        csvWriter.writerow([version['version'],
+                            version['subject'],
+                            ' '.join(version['tags'])])
+
+
+def _tablePrint(versionList):
+    """Internal function to print to the stdout as a table.
+
+    Args:
+        versionList (list of dict): the list to print.
+    """
+    rowTemplate = '| {:5} | {:40} | {:20} |'
+    if sys.stdout.isatty():
+        print(rowTemplate.format('vers.','subject', 'tags'))
+        print(rowTemplate.format('-'*5, '-'*40, '-'*20))
+    for version in versionList:
+        print(rowTemplate.format(version['version'],
+                                 version['subject'],
+                                 ' '.join(version['tags'])))
