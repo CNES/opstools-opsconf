@@ -38,12 +38,14 @@ def versionToInt(version):
     12
 
     Args:
-        version (int or string): The version to translate
+        version (int or string or None): The version to translate. If None, returns None
 
     Returns:
         int: the version as an integer
     """
-    if isinstance(version, int):
+    if version is None:
+        return None
+    elif isinstance(version, int):
         return version
     elif isinstance(version, str) and version.isdigit():
         return int(version)
@@ -170,7 +172,7 @@ def isOpsConfRepo():
     if (libgit.existRemoteBranch(OPSCONF_BRANCH_WORK) and
             libgit.existRemoteBranch(OPSCONF_BRANCH_QUALIF) and
             libgit.existRemoteBranch(OPSCONF_BRANCH_VALID)):
-        return libgit.existFileInBranch('.opsconf', OPSCONF_BRANCH_WORK)
+        return libgit.existFileInRevision('.opsconf', OPSCONF_BRANCH_WORK)
     else:
         LOGGER.debug("I cannot be an opsconf repo: Missing branches")
         return False
@@ -540,7 +542,7 @@ def rollbackToVersion(filename, version, reason):
         OpsconfFatalError: if the rollback is not possible, this exception is raised.
     """
     branch = libgit.getCurrentBranch()
-    if not libgit.existFileInBranch(filename, branch):
+    if not libgit.existFileInRevision(filename, branch):
         raise OpsconfFatalError("This is not a file, or is not available in the branch {}: {}".format(branch, filename))
     revisionRange = getRevisionRange(filename, "HEAD")
     versionHash = libgit.logLastOneFile(filename, revisionRange, pattern="^v{}: ".format(version), outputFormat='%H')
@@ -567,7 +569,7 @@ def listAvailaibleVersions(branch, filename):
     Returns:
         list of dict: the versions as: {'version': <int>, 'subject': <str>, 'tags': <list of str>}.
     """
-    if not libgit.existFileInBranch(filename, branch):
+    if not libgit.existFileInRevision(filename, branch):
         raise OpsconfFatalError("This is not a file, or is not available in the branch {}: {}".format(branch, filename))
     revisionRange = getRevisionRange(filename, branch)
     hashSubjects = libgit.logOneFile(filename, revisionRange, pattern=OPSCONF_PREFIX_PATTERN, outputFormat="%H,%s")
@@ -679,6 +681,7 @@ def showCurrentVersions(revision, withNotes=False):
             'notes': notes
         }
         if filename in changedFileList:
+            changedFileList.remove(filename)
             fileVersion['changed'] = True
 
         if lastVersionInWork is None:
@@ -689,6 +692,17 @@ def showCurrentVersions(revision, withNotes=False):
             pass
 
         fileVersionList.append(fileVersion)
+    # The remaining files are the ones that were never committed in this branch
+    for filename in changedFileList:
+        fileVersionList.append(
+            {
+                'file': filename,
+                'version': 0,
+                'removed': False,
+                'newer': False,
+                'changed': True,
+                'notes': []
+            })
 
     return fileVersionList
 
@@ -704,10 +718,10 @@ def removeFile(filename, reason):
         reason (str): the reason of the deletion.
 
     Raises:
-        OpsconfFatalError: if the file cannot be found in the WORK branch, this exception is raised
+        OpsconfFatalError: if the file cannot be found in the WORK branch, this exception is raised.
     """
     branch = libgit.getCurrentBranch()
-    if not libgit.existFileInBranch(filename, branch):
+    if not libgit.existFileInRevision(filename, branch):
         raise OpsconfFatalError("File not found in the branch {}: {}".format(branch, filename))
 
     libgit.removeOneFile(filename)
@@ -716,19 +730,38 @@ def removeFile(filename, reason):
     del os.environ['OPSCONF_BYPASS_CHECK']
 
 
-def diffBetweenVersions(filename, version1, version2):
+def diffBetweenVersions(filename, version1=None, version2=None):
     """Get the diff between 2 versions of a gien file.
 
     Args:
         filename (str): the path of the file of interest
-        version1 (int): the version of reference
-        version2 (int): the version containing the changes.
+        version1 (int, optional): the version of reference. Defaults to None.
+                                  If None, consider version1 as the last version of the file in this branch.
+        version2 (int, optional): the version containing the changes. Defaults to None.
+                                  If None, consider version2 as the current state of the file in the working
+                                  directory.
 
     Returns:
-        str: the diff (patch-like text)
+        str: the diff (patch-like text).
     """
-    h1 = libgit.logLastOneFile(filename, 'HEAD', pattern="^v{}: ".format(version1), outputFormat="%H")
-    h2 = libgit.logLastOneFile(filename, 'HEAD', pattern="^v{}: ".format(version2), outputFormat="%H")
+    if version1 is not None:
+        try:
+            h1 = libgit.logLastOneFile(filename, 'HEAD', pattern="^v{}: ".format(version1), outputFormat="%H")
+        except libgit.GitNoLogError:
+            raise OpsconfFatalError("Version {} not found in history for this file: {}".format(version1, filename))
+    else:
+        h1 = libgit.getLocalBranchTip()  # must be 'HEAD' because the file might not yet exist in the history.
+    if version2 is not None:
+        try:
+            h2 = libgit.logLastOneFile(filename, 'HEAD', pattern="^v{}: ".format(version2), outputFormat="%H")
+        except libgit.GitNoLogError:
+            raise OpsconfFatalError("Version {} not found in history for this file: {}".format(version2, filename))
+    else:
+        h2 = None
+
+    if not libgit.existFileInRevision(filename, h1):
+        raise OpsconfFatalError('File not found in revision {}: {}'.format(h1, filename))
+
     return libgit.diffOneFile(filename, h1, h2)
 
 
@@ -740,7 +773,7 @@ def promoteVersion(targetBranch, filename, version=None, message=None):
     Args:
         targetBranch (str): the branch where to bring the version.
         filename (str): the path of the file of interest.
-        version (int or str, optional): the version to promote. Defaults to None. In this case,
+        version (int, optional): the version to promote. Defaults to None. In this case,
                                         the last version from the file in the WORK branch is promoted.
         message (str, optional): a message to attach to the version promotion. Defaults to None.
 
@@ -755,7 +788,10 @@ def promoteVersion(targetBranch, filename, version=None, message=None):
                                               outputFormat="%s")
         versionToPromote = getVersionFromCommitMsg(lastCommitMsg)
     else:
-        versionToPromote = versionToInt(version)
+        versionToPromote = version
+
+    if not libgit.existFileInRevision(filename, 'HEAD'):
+        raise OpsconfFatalError('{} does not exist in the current branch or is not a file'.format(filename))
 
     lastHashAfterRetrieval = None
     if isCurrentBranchWork():

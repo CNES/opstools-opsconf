@@ -72,7 +72,6 @@ if __name__ == "__main__":
     module = getattr(opsconf.subcommand, args.command)
     try:
         module.runCmd(args)
-    except opsconf.OpsconfFatalError as e:
+    except (opsconf.OpsconfFatalError, opsconf.libgit.GitNoLogError) as e:
         LOGGER.error(e)
         sys.exit(1)
-

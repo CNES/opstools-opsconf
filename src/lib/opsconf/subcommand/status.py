@@ -74,7 +74,11 @@ def _tablePrint(fileVersionList, withNotes):
     """
     # define columns and print header
     rowTemplate = '| {:{maxlength}} | {:6} |'
-    maxlength = max([ len(fileVersion['file']) for fileVersion in fileVersionList ])
+    if len(fileVersionList) == 0:
+        maxlength = 10
+    else:
+        maxlength = max([ len(fileVersion['file']) for fileVersion in fileVersionList ])
+
     if withNotes:
         rowTemplate += ' {:40} |'
         print(rowTemplate.format('Filename', 'Vers.', 'Notes', maxlength=maxlength))

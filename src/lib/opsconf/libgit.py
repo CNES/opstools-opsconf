@@ -168,18 +168,17 @@ def listCachedFiles(againstRevision='HEAD'):
     return stdout.splitlines()
 
 
-def existFileInBranch(filename, branch, remote='origin'):
-    """Check if the file exists in the branch.
+def existFileInRevision(filename, revision):
+    """Check if the file exists in the revision (branch, tag, commit).
 
     Args:
         filename (str): the file path to search.
-        branch (str): the branch where to search.
-        remote (str, optional): the remote to compare to. Defaults to 'origin'.
+        revision (str): the revison (branch, tag, commit) where to search.
 
     Returns:
         bool: True if the file was found. False otherwise.
     """
-    stdout, _, _ = _runCmd(['git', 'ls-tree', '-r', '--name-only', '{}/{}'.format(remote, branch), '--', filename])
+    stdout, _, _ = _runCmd(['git', 'ls-tree', '-r', '--name-only', '{}'.format(revision), '--', filename])
     return stdout == filename
 
 
@@ -551,7 +550,7 @@ def logLastOneFile(filename, revision='HEAD', pattern=None, outputFormat='%h %s'
         outputFormat (str, optional): the format in which the logs shall be returned. Defaults to '%h %s'.
 
     Returns:
-        list of str: the history log
+        list of str: the history log.
     """
     logs = logOneFile(filename, revision, pattern, outputFormat, logCount=1)
     if len(logs) == 0:
@@ -560,18 +559,24 @@ def logLastOneFile(filename, revision='HEAD', pattern=None, outputFormat='%h %s'
         return logs[0]
 
 
-def diffOneFile(filename, fromRevision, toRevision='HEAD'):
+def diffOneFile(filename, fromRevision='HEAD', toRevision=None):
     """Get the diff of a file between 2 revisions.
 
     Args:
         filename (str): the file on which to apply the diff.
-        fromRevision (str): the revision used as reference.
-        toRevision (str, optional): the revision used as the modification. Defaults to 'HEAD'.
+        fromRevision (str, optional): the revision used as reference. Defaults to 'HEAD'.
+        toRevision (str, optional): the revision used as the modification. Defaults to None.
+                                    If None, it takes the working directory state.
 
     Returns:
         str: the patch-like result of the diff.
     """
-    stdout, _, _ = _runCmd(['git', 'diff', '{}..{}'.format(fromRevision, toRevision), '--', filename], outputCleanup=False)
+    if toRevision is None:
+        revision = fromRevision
+    else:
+        revision = "{}..{}".format(fromRevision, toRevision)
+
+    stdout, _, _ = _runCmd(['git', 'diff', revision, '--', filename], outputCleanup=False)
     return stdout
 
 

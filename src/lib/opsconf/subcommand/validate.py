@@ -30,7 +30,7 @@ def runCmd(args):
         args (argparse.Namespace): the namespace returned by the parse_args() method
     """
     filename = args.file
-    version = args.version
+    version = opsconf.versionToInt(args.version)
     message = args.message
 
     if libgit.getCurrentBranch() not in [opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_VALID]:
