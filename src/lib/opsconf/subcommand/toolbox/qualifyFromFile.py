@@ -20,7 +20,7 @@ def setupParser(parentParser):
     parentParser.description = "Qualify file versions based on the the stdin or the SRCFILE description."
     parentParser.add_argument('--dry-run', help="pretend to qualify the files, but do not do it", action='store_true')
     parentParser.add_argument('-m', help="optional reason for the qualification", metavar='MESSAGE', dest='message')
-    parentParser.add_argument('sourceFile', help="the file that lists the versions to qualify, defaults to the stdin",
+    parentParser.add_argument('sourceFile', help="the file that lists the versions to qualify (in csv), defaults to the stdin",
                               metavar='SRCFILE', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
 
 
@@ -61,5 +61,5 @@ def runCmd(args):
         for fileVersion in fileVersionList:
             filename = fileVersion['filename']
             version = int(fileVersion['version'])
-            opsconf.promoteVersion(opsconf.OPSCONF_BRANCH_VALID, filename, version, message)
+            opsconf.promoteVersion(opsconf.OPSCONF_BRANCH_QUALIF, filename, version, message)
             logging.info("Validated %s in v%d.", filename, version)
