@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
 from distutils.core import setup
+from os import environ
 from sys import version_info
 
 from src.lib import opsconf
 
 suffix = "py{}{}".format(version_info.major, version_info.minor)
+
+if 'ISIS_BUILD' in environ:
+    suffix = "isis-" + suffix
 
 setup(name='opsconf-{}'.format(suffix),
       version=opsconf.OPSCONFVERSION,
