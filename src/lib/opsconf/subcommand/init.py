@@ -44,7 +44,7 @@ def runCmd(args):
         opsconf.initBranches()
     elif not opsconf.isOpsConfRepo():
         if rootBranch is None:
-            raise opsconf.OpsconfFatalError("This repo is not made for opsconf. To allow migration, use the '--rot-branch BRANCH' option")
+            raise opsconf.OpsconfFatalError("This repo is not made for opsconf. To allow migration, use the '--root-branch BRANCH' option")
         LOGGER.info("Porting standard git repository to opsconf")
         opsconf.initBranches(rootBranch)
 
@@ -55,6 +55,8 @@ def runCmd(args):
     hookDestination = os.path.join(gitRoot, ".git/hooks")
     for hook in os.listdir(HOOK_SRC):
         destinationFile = os.path.join(hookDestination, hook)
+        if os.path.isfile(destinationFile):
+            os.remove(destinationFile)
         shutil.copy(os.path.join(HOOK_SRC, hook), destinationFile)
         statInfo = os.stat(destinationFile)
         os.chmod(destinationFile, statInfo.st_mode | stat.S_IXUSR | stat.S_IXGRP)
