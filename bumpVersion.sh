@@ -12,9 +12,15 @@ if [[ "$VERSION" =~ ^v. ]] ; then
     exit 1
 fi
 
-sed -i "s/OPSCONFVERSION = \".*\"/OPSCONFVERSION = \"$VERSION\/" src/lib/libopsconf.py
+if [[ "$(git diff --name-only | wc -l)" -ne 0 ]] ; then
+    echo "[ERROR] The repo must be clean to run $0"
+    exit 1
+fi
+
+sed -i "s/OPSCONFVERSION = \".*\"/OPSCONFVERSION = \"$VERSION\"/" src/lib/opsconf/libopsconf.py
 for file in src/share/githooks/* ; do
     sed -i "s/OPSCONFVERSION=.*/OPSCONFVERSION=$VERSION/" $file
 done    
 
+git commit -am "Bump version to $VERSION"
 git tag -a "v$VERSION"
