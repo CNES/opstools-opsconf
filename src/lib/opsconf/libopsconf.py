@@ -4,7 +4,7 @@ import os
 
 from . import libgit
 
-OPSCONFVERSION = "0.2.0"
+OPSCONFVERSION = "0.2.1"
 
 OPSCONF_BRANCH_WORK = "work"
 OPSCONF_BRANCH_QUALIF = "qualification"
