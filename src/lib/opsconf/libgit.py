@@ -499,7 +499,7 @@ def setTag(tag, message=None):
         message (str, optional): description of the tag. Defaults to None. If a message is given, the tag
                                  is annotated. If not, the tag is simple.
     """
-    if message is not None:
+    if message is None:
         _runCmd(['git', 'tag', tag])
     else:
         _runCmd(['git', 'tag', '-a', tag, '-m', message])
