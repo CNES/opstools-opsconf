@@ -92,14 +92,13 @@ def initBranches(rootBranch=None):
                 libgit.addOneFile(filepath)
                 libgit.commitOneFile(filepath, "v1: First version for '{}'".format(filepath))
     else:
-        libgit.createBranch(OPSCONF_BRANCH_WORK)
-        libgit.checkoutRevision(OPSCONF_BRANCH_WORK)
+        libgit.createAndCheckoutOrphanBranch(OPSCONF_BRANCH_WORK)
         readmeFile = "README.md"
         with open("{}/{}".format(libgit.getGitRoot(), readmeFile), 'w') as f:
             f.write("# Readme\n")
             f.write("This repository is managed by opsconf.\n")
         libgit.addOneFile(readmeFile)
-        libgit.commitOneFile(readmeFile, "Add Readme")
+        libgit.commitOneFile(readmeFile, "v1: Add Readme")
         LOGGER.debug("Created first README")
 
     with open("{}/.opsconf".format(libgit.getGitRoot()), 'w') as f:
@@ -108,7 +107,7 @@ def initBranches(rootBranch=None):
 
     LOGGER.debug("Created .opsconf file")
     libgit.addOneFile(".opsconf")
-    libgit.commitOneFile(".opsconf", "Initialized opsconf")
+    libgit.commitOneFile(".opsconf", "v1: Initialized opsconf")
     # Keep the commit hash to initialize the other branches (cherry-pick)
     commitHash = libgit.logLastOneFile('.', outputFormat='%H')
     libgit.push(OPSCONF_BRANCH_WORK, newBranch=True)
