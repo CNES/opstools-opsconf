@@ -178,8 +178,11 @@ def existFileInRevision(filename, revision):
     Returns:
         bool: True if the file was found. False otherwise.
     """
-    stdout, _, _ = _runCmd(['git', 'ls-tree', '-r', '--name-only', '{}'.format(revision), '--', filename])
-    return stdout == filename
+
+    gitrootdir = getGitRoot()
+    stdout, _, _ = _runCmd(['git', 'ls-tree', '-r', '--name-only', '--full-name',
+                            '{}'.format(revision), gitrootdir])
+    return filename in stdout.splitlines()
 
 
 def listChangedFiles():

@@ -65,11 +65,16 @@ else
     log_result "KO"
 fi
 
-#TODO: COMMIT DIR WITH SUBDIR + FILES
-# COMMIT SOME FILES (but not all)
-# COMMIT FULL DIR
-# => Test all files have same message but not same version
-#
+log_test "Committing from a subdir works"
+pushd ${CURRENT_TEST} > /dev/null
+LOCALFILE="${ONE_FILE/${CURRENT_TEST}\/}"
+lorem_ipsum >> "$LOCALFILE"
+if opsconf commit -m "subdir commit" "$LOCALFILE" ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+popd > /dev/null
 
 VERSION_MAX=200
 FILE=${CURRENT_TEST}/file_lotofchanges.txt
