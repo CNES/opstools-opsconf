@@ -145,29 +145,6 @@ def getCurrentBranch():
     return stdout
 
 
-def listChangedFiles():
-    """List the files that were changed since the last commit.
-
-    Returns:
-        list of str: the list of files that were changed since the last commit.
-    """
-    stdout, _, _ = _runCmd(['git', 'diff', '--name-only'])
-    return stdout.splitlines()
-
-
-def listCachedFiles(againstRevision='HEAD'):
-    """List the files that are currently cached.
-
-    Args:
-        againstRevision (str, optional): the revision to compare to. Defaults to 'HEAD'.
-
-    Returns:
-        list of str: the list of files that are currently cached.
-    """
-    stdout, _, _ = _runCmd(['git', 'diff', '--cached', '--name-only', againstRevision])
-    return stdout.splitlines()
-
-
 def existFileInRevision(filename, revision):
     """Check if the file exists in the revision (branch, tag, commit).
 
@@ -194,6 +171,19 @@ def listChangedFiles():
     modified, _, _ = _runCmd(['git', 'ls-files', '-m'])
     untracked, _, _ = _runCmd(['git', 'ls-files', '-o', '--exclude-standard'])
     return modified.splitlines() + untracked.splitlines()
+
+
+def listCachedFiles(againstRevision='HEAD'):
+    """List the files that are currently cached.
+
+    Args:
+        againstRevision (str, optional): the revision to compare to. Defaults to 'HEAD'.
+
+    Returns:
+        list of str: the list of files that are currently cached.
+    """
+    stdout, _, _ = _runCmd(['git', 'diff', '--cached', '--name-only', againstRevision])
+    return stdout.splitlines()
 
 
 def listAllFilesInRevision(revision):

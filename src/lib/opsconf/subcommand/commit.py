@@ -43,9 +43,9 @@ def runCmd(args):
     if recursive and os.path.isdir(filename):
         # We search only changed file
         changedFiles = libgit.listChangedFiles()
-
         for f in changedFiles:
-            _commitFile(f, message)
+            if f.startswith(filename):
+                _commitFile(f, message)
     else:
         _commitFile(filename, message=message)
 
