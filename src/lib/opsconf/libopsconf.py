@@ -789,8 +789,8 @@ def promoteVersion(targetBranch, filename, version=None, message=None):
     else:
         versionToPromote = version
 
-    if not libgit.existFileInRevision(filename, 'HEAD'):
-        raise OpsconfFatalError('{} does not exist in the current branch or is not a file'.format(filename))
+    if not libgit.existFileInRevision(filename, OPSCONF_BRANCH_WORK):
+        raise OpsconfFatalError("{} does not exist in the current branch '{}' or is not a file".format(filename, targetBranch))
 
     lastHashAfterRetrieval = None
     if isCurrentBranchWork():

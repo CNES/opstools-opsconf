@@ -39,7 +39,7 @@ for branch in "qualification" "master" ; do
 
     log_test "Branch $branch has no version of $FILE"
     opsconf checkout "$branch"
-    if [ "$(opsconf log "$FILE" | wc -l)" -eq 0 ]; then
+    if [ "$(opsconf log "$FILE" 2> /dev/null | wc -l)" -eq 0 ]; then
         log_result "OK"
     else
         log_result "KO"
@@ -68,7 +68,7 @@ for branch in "qualification" "master" ; do
     fi
 
     log_test "Bring again same file, previous version to branch $branch fails and do not change $branch"
-    if ! opsconf "$cmd" "$FILE" 3 && [ "$(opsconf log "$FILE" | wc -l)" -eq 5 ]; then
+    if ! opsconf "$cmd" "$FILE" 3 2> /dev/null && [ "$(opsconf log "$FILE" | wc -l)" -eq 5 ]; then
         log_result "OK"
     else
         log_result "KO"
