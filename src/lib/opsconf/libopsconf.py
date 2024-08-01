@@ -477,7 +477,7 @@ def retrieveVersion(sourceBranch, filename, version):
         # case where the current file already has the expected version
         # => Nothing to do
         LOGGER.info("%s is already in version %d. Nothing to do.", filename, version)
-        return
+        return None
 
     elif lastVersionNb > version:
         # case where the current file has a greater version than the current one
