@@ -171,7 +171,8 @@ def isOpsConfRepo():
     if (libgit.existRemoteBranch(OPSCONF_BRANCH_WORK) and
             libgit.existRemoteBranch(OPSCONF_BRANCH_QUALIF) and
             libgit.existRemoteBranch(OPSCONF_BRANCH_VALID)):
-        return libgit.existFileInRevision('.opsconf', OPSCONF_BRANCH_WORK)
+        opsconfFilepath = os.path.relpath(libgit.getGitRoot(), os.getcwd())
+        return libgit.existFileInBranch(opsconfFilepath, OPSCONF_BRANCH_WORK)
     else:
         LOGGER.debug("I cannot be an opsconf repo: Missing branches")
         return False
