@@ -26,14 +26,14 @@ done
 for operation in "validate" "qualify" ; do
     cmd="${operation}FromFile"
     log_test "$cmd: Dry-run works from stdin"
-    if opsconf status --to-csv | opsconf toolbox $cmd --dry-run 2> /dev/null ; then
+    # the grep -v ;0; removes the new files
+    if opsconf status --to-csv | grep -v ';0;' | opsconf toolbox $cmd --dry-run 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
     log_test "$cmd: Dry-run fails if the input is wrong from stdin"
-    # the grep -v ;0; removes the new files
     if ! opsconf status --to-csv | grep -v ';0;' | sed 's/;1;/;23;/' | opsconf toolbox $cmd --dry-run 2> /dev/null ; then
         log_result "OK"
     else
