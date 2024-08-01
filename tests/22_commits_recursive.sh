@@ -30,7 +30,7 @@ else
 fi
 
 log_test "The nearby directory is not committed"
-if [ "$(git ls-files -o -- "${NOT_COMMITTED_DIR}" | grep -c "${NOT_COMMITED_DIR}")" -gt 0 ]; then
+if [ "$(git ls-files -o -- "${NOT_COMMITTED_DIR}" | grep -c "${NOT_COMMITTED_DIR}")" -gt 0 ]; then
     log_result "OK"
 else
     log_result "KO"
@@ -49,7 +49,7 @@ else
 fi
 popd > /dev/null
 log_test "The nearby directory is still not committed"
-if [ "$(git ls-files -o -- "${NOT_COMMITTED_DIR}" | grep -c "${NOT_COMMITED_DIR}")" -gt 0 ]; then
+if [ "$(git ls-files -o -- "${NOT_COMMITTED_DIR}" | grep -c "${NOT_COMMITTED_DIR}")" -gt 0 ]; then
     log_result "OK"
 else
     log_result "KO"

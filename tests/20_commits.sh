@@ -59,7 +59,7 @@ else
 fi
 
 log_test "Local and remote are in sync"
-if [ "$(git rev-parse HEAD)" = "$(git rev-parse @{u})" ]; then
+if [ "$(git rev-parse HEAD)" = "$(git rev-parse '@{u}')" ]; then
     log_result "OK"
 else
     log_result "KO"

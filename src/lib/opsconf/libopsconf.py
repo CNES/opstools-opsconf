@@ -171,8 +171,7 @@ def isOpsConfRepo():
     if (libgit.existRemoteBranch(OPSCONF_BRANCH_WORK) and
             libgit.existRemoteBranch(OPSCONF_BRANCH_QUALIF) and
             libgit.existRemoteBranch(OPSCONF_BRANCH_VALID)):
-        opsconfFilepath = os.path.relpath(libgit.getGitRoot(), os.getcwd())
-        return libgit.existFileInBranch(opsconfFilepath, OPSCONF_BRANCH_WORK)
+        return libgit.existFileInRevision('.opsconf', OPSCONF_BRANCH_WORK)
     else:
         LOGGER.debug("I cannot be an opsconf repo: Missing branches")
         return False
@@ -478,7 +477,7 @@ def retrieveVersion(sourceBranch, filename, version):
         # case where the current file already has the expected version
         # => Nothing to do
         LOGGER.info("%s is already in version %d. Nothing to do.", filename, version)
-        return
+        return None
 
     elif lastVersionNb > version:
         # case where the current file has a greater version than the current one

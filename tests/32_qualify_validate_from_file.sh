@@ -41,7 +41,7 @@ for operation in "validate" "qualify" ; do
     fi
 
     log_test "$cmd: Operation succeeds from the stdin (promote only v1)"
-    if opsconf status --to-csv | grep -v ';0;' | sed 's/;[:digit:];/;1;/' | opsconf toolbox $cmd 2> /dev/null ; then
+    if opsconf status --to-csv | grep -v ';0;' | sed 's/;[[:digit:]];/;1;/' | opsconf toolbox $cmd 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
