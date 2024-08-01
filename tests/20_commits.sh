@@ -76,6 +76,20 @@ else
 fi
 popd > /dev/null
 
+log_test "Tagging works"
+if opsconf tag -m "message is here" "VALID" ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+
+log_test "Tagging works also without message"
+if opsconf tag "VALID2" ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+
 VERSION_MAX=200
 FILE=${CURRENT_TEST}/file_lotofchanges.txt
 log_test "Create $VERSION_MAX versions"

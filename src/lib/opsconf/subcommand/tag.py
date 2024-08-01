@@ -1,5 +1,7 @@
 """Module to define the subcommand tag."""
 
+import time
+
 from opsconf import libgit
 
 
@@ -10,6 +12,7 @@ def setupParser(parser):
         parser (argparse.ArgumentParser): the parser to setup
     """
     parser.description = "Tag the current state of the repository with tag TAG"
+    parser.add_argument('-m', help="the tag message", metavar="MESSAGE", dest="message")
     parser.add_argument('tag', help="the name of the tag", metavar='TAG')
 
 
@@ -20,5 +23,9 @@ def runCmd(args):
         args (argparse.Namespace): the namespace returned by the parse_args() method
     """
     tag = args.tag
-    libgit.setTag(tag)
+    if args.message is None:
+        message = "tag: {} ({})".format(tag, time.strftime('%d/%m/%Y %H:%M:%S'))
+    else:
+        message = args.message
+    libgit.setTag(tag, message)
     libgit.pushTag(tag)
