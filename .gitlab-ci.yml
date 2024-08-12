@@ -1,54 +1,27 @@
-# This file is a template, and might need editing before it works on your project.
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Bash.gitlab-ci.yml
-
-# See https://docs.gitlab.com/ee/ci/yaml/index.html for all available options
-
-# you can delete this line if you're not using Docker
+---
 include:
   - project: 'DNO-OP/ci-resources'
     ref: master
     file: 'check_code_quality.yml'
 
-variables:
-  ARTIFACTORY_HOST_DOCKER: "artifactory.cnes.fr"
-  ARTIFACTORY_URL_YUM: "https://artifactory.cnes.fr/artifactory"
-  CONTAINER_IMAGE: "laprod-images-docker/redhat/ubi8"
-  PYTHON36_IMAGE: "${ARTIFACTORY_HOST_DOCKER}/${CONTAINER_IMAGE}"
-
-default:
-  tags:
-    - Usine_Logicielle_Podman
-  
-image: "${PYTHON36_IMAGE}"
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
 
 stages:
-    - init
-    - test
-
-before_script:
-  - rm /etc/yum.repos.d/ubi.repo
-  - if [[ -n "${YUM_PACKAGES}" ]] ; then yum install -y ${YUM_PACKAGES} ; fi
-
-init-jfrog: 
-  stage: init
-  extends: .jfrog_cli_init_template
-  
-init-python:
-  stage: init
-  extends: .init_python36_template
-  needs:
-    - init-jfrog
-  variables:
-    YUM_PACKAGES: python36 git
+  - test
 
 test-job:
   stage: test
+  tags:
+    - Usine_Logicielle_Podman
+  image: artifactory.cnes.fr/laprod-images-docker/redhat/ubi8
   script:
-    - source python_env/bin/activate
-    - python3 -m pip install pylint
+    - rm /etc/yum.repos.d/ubi.repo
+    - yum install -y python36 pylint ShellCheck git diffutils > /dev/null
     - tests/run_tests.sh
-  variables:
-    YUM_PACKAGES: python36 git diffutils
+
