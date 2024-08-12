@@ -13,13 +13,8 @@ WORKSPACE="$ROOT_DIR/tests_exec_workspace"
 export REPO_REMOTE="$WORKSPACE/remote_dir.git"
 export REPO_LOCAL="$WORKSPACE/local_dir"
 
-# shellcheck disable=SC2120
 lorem_ipsum() {
-    if [ "$#" -eq 1 ]; then
-        nb_lines=$1
-    else
-        nb_lines=50
-    fi
+    nb_lines=50
     base64 /dev/urandom | awk '{print(0==NR%10)?"":$nb_lines}' | sed 's/[^[:alpha:]]/ /g' | sed 's/ \+$//' | head -"$nb_lines"
 }
 

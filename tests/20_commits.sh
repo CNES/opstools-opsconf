@@ -31,12 +31,6 @@ for branch in "master" "qualification" ; do
     git checkout work 2> /dev/null
 done
 
-if [ "$(git log --format=%s -n1 | cut -d: -f1)" = "v2" ]; then
-    log_result "OK"
-else
-    log_result "KO"
-fi
-
 log_test "$ONE_FILE has version 2"
 if [ "$(git log --format=%s -n1 | cut -d: -f1)" = "v2" ]; then
     log_result "OK"
