@@ -8,9 +8,6 @@ from src.lib import opsconf
 
 suffix = "py{}{}".format(version_info.major, version_info.minor)
 
-if 'ISIS_BUILD' in environ:
-    suffix = "isis-" + suffix
-
 setup(name='opsconf-{}'.format(suffix),
       version=opsconf.OPSCONFVERSION,
       description='File-centric Version Control System. Thought for operational data',
