@@ -14,7 +14,6 @@ $ ./tests/run_tests.sh
 
 ## Comment packager ?
 
-### Standard
 Si la version du RPM a changé mais pas le soft, indiquer le numéro de release du RPM via `RELEASE=xx`
 
 Si une version particulière de python doit être utilisée, l'indiquer: `PYTHON_VERSION=python3.4`
@@ -25,16 +24,10 @@ PYTHON_VERSION=python3.4 ./makeRPM.sh  # create the RPM
 RELEASE=2 PYTHON_VERSION=python3.4 ./makeRPM.sh  # create the RPM of release 2
 ```
 
-### Pour la LP ISIS
-Ajouter `ISIS_BUILD=yes`. Par exemple:
-```bash
-ISIS_BUILD=yes PYTHON_VERSION=python3.4 ./makeRPM.sh  # until LP ISIS v3.2.x
-ISIS_BUILD=yes PYTHON_VERSION=python3.6 ./makeRPM.sh  # from LP ISIS v4.0
-```
 ## Comment utiliser sans installer?
 
 ```bash
-export PATH=<repo_opsconf>/src/bin:$PATH
+export PATH=$<repo_opsconf>/src/bin:$PATH
 export OPSCONF_DIR=$<repo_opsconf>/src/share
 export PYTHONPATH=$<repo_opsconf>/src/lib:$PYTHONPATH
 ```
