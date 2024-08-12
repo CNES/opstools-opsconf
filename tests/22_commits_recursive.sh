@@ -21,7 +21,7 @@ done
 log_test "Committing recursively a directory works"
 COMMITTED_DIR="${CURRENT_TEST}/dir2"
 NOT_COMMITTED_DIR="${CURRENT_TEST}/dir1"
-opsconf commit -r -m "Created ${COMMITTED_DIR}" "${COMMITTED_DIR}"
+OPSCONF_BIN commit -r -m "Created ${COMMITTED_DIR}" "${COMMITTED_DIR}"
 
 if [ "$(git log --format=%s -n1 -- "${COMMITTED_DIR}" | cut -d: -f1)" = "v1" ]; then
     log_result "OK"
@@ -42,7 +42,7 @@ done
 
 log_test "Committing not from the git root directory works"
 pushd "${CURRENT_TEST}" > /dev/null
-if opsconf commit -r -m "changed dir2" "dir2" ; then
+if OPSCONF_BIN commit -r -m "changed dir2" "dir2" ; then
     log_result "OK"
 else
     log_result "KO"

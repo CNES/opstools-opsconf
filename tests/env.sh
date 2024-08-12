@@ -6,12 +6,24 @@ export PATH="$ROOT_DIR/src/bin:$PATH"
 export PYTHONPATH="$ROOT_DIR/src/lib:$PYTHONPATH"
 export OPSCONF_DIR="$ROOT_DIR/src/share"
 
-export TESTS_RESULTS="$ROOT_DIR/tests/tests_results.txt"
-
 WORKSPACE="$ROOT_DIR/tests_exec_workspace"
+
+export TESTS_RESULTS="$WORKSPACE/tests_results.txt"
+export COVERAGE_FILE="$WORKSPACE/coverage_results"
+export COVERAGE_XML="$WORKSPACE/coverage.xml"
 
 export REPO_REMOTE="$WORKSPACE/remote_dir.git"
 export REPO_LOCAL="$WORKSPACE/local_dir"
+
+if python3 -m coverage &> /dev/null ; then
+    OPSCONF_BIN() {
+        python3 -m coverage run -a --source "$ROOT_DIR/src" "$ROOT_DIR/src/bin/opsconf" "$@"
+    }
+else
+    OPSCONF_BIN() {
+        opsconf "$@"
+    }
+fi
 
 lorem_ipsum() {
     nb_lines=50

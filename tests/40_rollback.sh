@@ -10,11 +10,11 @@ mkdir ${CURRENT_TEST}
 
 FILE=${CURRENT_TEST}/file.txt
 touch "$FILE"
-opsconf commit -m "Create $FILE" "$FILE" &> /dev/null
+OPSCONF_BIN commit -m "Create $FILE" "$FILE" &> /dev/null
 
 for k in {2..10} ; do
     lorem_ipsum > $FILE
-    opsconf commit -m "Set $FILE content to $k" "$FILE" &> /dev/null
+    OPSCONF_BIN commit -m "Set $FILE content to $k" "$FILE" &> /dev/null
 done
 
 log_test "Rollbacked and new versions have the same content"
@@ -23,7 +23,7 @@ Because
 You Know
 
 Things happen!"
-opsconf rollback -m "$rollback_message" "$FILE" v4
+OPSCONF_BIN rollback -m "$rollback_message" "$FILE" v4
 v4rev=$(rev_from_branch_version "$FILE" "work" v4)
 if cmp "$FILE" <(file_content_in_rev "$FILE" "$v4rev"); then
     log_result "OK"
@@ -52,8 +52,8 @@ else
 fi
 
 log_test "Rollback does not work on master branch"
-opsconf checkout master
-if ! opsconf rollback -m "test" $FILE v1 ; then
+OPSCONF_BIN checkout master
+if ! OPSCONF_BIN rollback -m "test" $FILE v1 ; then
     log_result "OK"
 else
     log_result "KO"

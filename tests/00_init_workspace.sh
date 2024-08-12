@@ -2,11 +2,6 @@
 
 . env.sh
 
-if [ -d "$WORKSPACE" ] ; then
-    rm -rf "$WORKSPACE"
-fi
-
-mkdir "$WORKSPACE"
 log_debug "Init remote repo"
 mkdir "$REPO_REMOTE"
 cd "$REPO_REMOTE"

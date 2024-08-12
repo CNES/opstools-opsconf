@@ -24,21 +24,21 @@ git push -u origin develop
 ) &> /dev/null
 
 log_test "Cannot run opsconf command before init."
-if ! opsconf checkout master 2> /dev/null ; then
+if ! OPSCONF_BIN checkout master 2> /dev/null ; then
    log_result "OK"
 else
    log_result "KO"
 fi
 
 log_test "Cannot run opsconf init command without a root branch."
-if ! opsconf init 2> /dev/null ; then
+if ! OPSCONF_BIN init 2> /dev/null ; then
    log_result "OK"
 else
    log_result "KO"
 fi
 
 log_info "Initialize opsconf"
-opsconf init --root-branch develop
+OPSCONF_BIN init --root-branch develop
 
 log_test "Hooks are correctly deployed."
 result=0

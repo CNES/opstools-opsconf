@@ -6,6 +6,10 @@ pushd "${TEST_DIR}" > /dev/null
 
 . env.sh
 
+[[ -d "$WORKSPACE" ]] && rm -rf "$WORKSPACE"
+mkdir "$WORKSPACE"
+
+[[ -f "${COVERAGE_FILE}" ]] && rm "${COVERAGE_FILE}"
 [[ -f "${TESTS_RESULTS}" ]] && rm "${TESTS_RESULTS}"
 
 # shellcheck disable=SC2010

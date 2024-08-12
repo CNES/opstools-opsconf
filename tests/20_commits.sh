@@ -10,19 +10,19 @@ mkdir ${CURRENT_TEST}
 
 ONE_FILE=${CURRENT_TEST}/one_file.txt
 touch "$ONE_FILE"
-opsconf commit -m "Create $ONE_FILE" "$ONE_FILE"
+OPSCONF_BIN commit -m "Create $ONE_FILE" "$ONE_FILE"
 lorem_ipsum >> "$ONE_FILE"
 long_msg="Write stuff in toto
 
 It was really needed"
-opsconf commit -m "$long_msg" "$ONE_FILE"
+OPSCONF_BIN commit -m "$long_msg" "$ONE_FILE"
 
 for branch in "master" "qualification" ; do
     log_test "Cannot commit from $branch"
     git checkout "$branch" 2> /dev/null
     touch test
     git add test
-    if ! opsconf commit test -m "message" &> /dev/null ; then
+    if ! OPSCONF_BIN commit test -m "message" &> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
@@ -63,7 +63,7 @@ log_test "Committing from a subdir works"
 pushd ${CURRENT_TEST} > /dev/null
 LOCALFILE="${ONE_FILE/${CURRENT_TEST}\/}"
 lorem_ipsum >> "$LOCALFILE"
-if opsconf commit -m "subdir commit" "$LOCALFILE" ; then
+if OPSCONF_BIN commit -m "subdir commit" "$LOCALFILE" ; then
     log_result "OK"
 else
     log_result "KO"
@@ -71,14 +71,14 @@ fi
 popd > /dev/null
 
 log_test "Tagging works"
-if opsconf tag -m "message is here" "VALID" ; then
+if OPSCONF_BIN tag -m "message is here" "VALID" ; then
     log_result "OK"
 else
     log_result "KO"
 fi
 
 log_test "Tagging works also without message"
-if opsconf tag "VALID2" ; then
+if OPSCONF_BIN tag "VALID2" ; then
     log_result "OK"
 else
     log_result "KO"
@@ -90,6 +90,7 @@ log_test "Create $VERSION_MAX versions"
 for k in $(seq 1 ${VERSION_MAX}) ; do
     echo -ne "$k\\r"
     echo "$k" > "$FILE"
+    # No coverage here: it's more of a performence test
     opsconf commit -m "changing content $((k-1)) by $k" $FILE &>/dev/null
 done
 if [ "$(git log -n1 --format=%s -- $FILE | cut -d: -f1)" = "v${VERSION_MAX}" ]; then
