@@ -79,7 +79,7 @@ for operation in "validate" "qualify" ; do
     fi
     MESSAGE="VALIDATION MESSAGE"
     log_test "$cmd: Promotion is correctly stored on newly promoted version"
-    opsconf status --to-csv | grep -v ';0;' | opsconf toolbox $cmd -m "$MESSAGE" 2> /dev/null
+    opsconf status --to-csv | grep -v ';0;' | opsconf toolbox "$cmd" -m "$MESSAGE" 2> /dev/null
     opsconf checkout  "$branch" 2> /dev/null
     if [ "$(opsconf status --with-notes | grep -c "$MESSAGE")" -eq 3 ] ; then
         log_result "OK"

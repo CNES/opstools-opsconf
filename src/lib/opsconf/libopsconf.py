@@ -14,6 +14,8 @@ OPSCONF_PREFIX_PATTERN = "^v[0-9]\+: "
 OPSCONF_PREFIX_REMOVED = "vZZ: "
 OPSCONF_HOOKDIR = "{}/githooks".format(os.getenv('OPSCONF_DIR', '/usr/share/opsconf'))
 
+OPSCONF_PROMOTION_NOTE_TOPIC = "promotion"
+
 OPSCONF_SYMBOL_REMOVED = '!'
 OPSCONF_SYMBOL_NEWER = '*'
 OPSCONF_SYMBOL_CHANGED = '+'
@@ -667,7 +669,7 @@ def showCurrentVersions(revision, withNotes=False):
         lastVersionInWork = getVersionFromCommitMsg(lastCommitMsgInWork)
 
         if withNotes:
-            notes = libgit.getNotesFromCommit(lastCommitHash)
+            notes = libgit.getNotesFromCommit(lastCommitHash, topic=OPSCONF_PROMOTION_NOTE_TOPIC)
         else:
             notes = []
 
@@ -827,5 +829,5 @@ def promoteVersion(targetBranch, filename, version=None, message=None):
                                )
 
     if lastHashAfterRetrieval is not None and message is not None:
-        libgit.addNoteToCommit(lastHashAfterRetrieval, message)
-        libgit.pushNotes()
+        libgit.addNoteToCommit(lastHashAfterRetrieval, message, topic=OPSCONF_PROMOTION_NOTE_TOPIC)
+        libgit.pushNotes(topic=OPSCONF_PROMOTION_NOTE_TOPIC)

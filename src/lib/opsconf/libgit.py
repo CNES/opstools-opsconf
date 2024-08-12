@@ -367,23 +367,25 @@ def commitOneFile(filename, message, date=None, author=None):
     _runCmd(cmd)
 
 
-def addNoteToCommit(commitHash, noteMessage):
+def addNoteToCommit(commitHash, noteMessage, topic="commits"):
     """Add a note to a given commit.
 
     Args:
         commitHash (str): the commit hash to which to add a note.
         noteMessage (str): the text from the note.
+        topic (str, optional): the notes topic (refs/notes/{topic}). Defaults to 'commits'
     """
-    _runCmd(['git', 'notes', 'append', '-m', noteMessage, commitHash])
+    _runCmd(['git', 'notes', '--ref', topic, 'append', '-m', noteMessage, commitHash])
 
 
-def pushNotes(remote="origin"):
+def pushNotes(remote="origin", topic="commits"):
     """Push the notes to the remote
 
     Args:
         remote (str, optional): the remote where to push the notes. Defaults to 'origin'.
+        topic (str, optional): the notes topic (refs/notes/{topic}). Defaults to 'commits'
     """
-    _runCmd(['git', 'push', remote, 'refs/notes/commits'])
+    _runCmd(['git', 'push', remote, 'refs/notes/{}'.format(topic)])
 
 
 def pullNotes(remote="origin"):
@@ -395,18 +397,19 @@ def pullNotes(remote="origin"):
     _runCmd(['git', 'fetch', remote, 'refs/notes/*:refs/notes/*'])
 
 
-def getNotesFromCommit(commitHash):
+def getNotesFromCommit(commitHash, topic="commits"):
     """Get the notes from a given commit.
 
     Args:
         commitHash (str): the hash of the commit from which to get the notes.
+        topic (str, optional): the notes topic (refs/notes/{topic}). Defaults to 'commits'
 
     Returns:
         list of str: the notes of the commit (split by '\n\n')
     """
     # if the commit has no note, the command returns 1
     # with raiseException=False, stdout will be empty
-    stdout, _, _ = _runCmd(['git', 'notes', 'show', commitHash], raiseException=False)
+    stdout, _, _ = _runCmd(['git', 'notes', '--ref', topic, 'show', commitHash], raiseException=False)
     return stdout.split('\n\n')
 
 
