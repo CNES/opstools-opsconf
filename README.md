@@ -27,9 +27,10 @@ RELEASE=2 PYTHON_VERSION=python3.4 ./makeRPM.sh  # create the RPM of release 2
 ## Comment utiliser sans installer?
 
 ```bash
-export PATH=$<repo_opsconf>/src/bin:$PATH
-export OPSCONF_DIR=$<repo_opsconf>/src/share
-export PYTHONPATH=$<repo_opsconf>/src/lib:$PYTHONPATH
+REPO_OPSCONF=<repo_opsconf>
+export PATH=${REPO_OPSCONF}/src/bin:$PATH
+export OPSCONF_DIR=${REPO_OPSCONF}/src/share
+export PYTHONPATH=${REPO_OPSCONF}/src/lib:$PYTHONPATH
 ```
 
 Se placer le dépôt à gérer en conf et commencer à travailler.
