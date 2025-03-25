@@ -287,13 +287,13 @@ def fetch(remote=None, branch=None):
     _runCmd(cmd)
 
 
-def checkoutRevision(revision):
-    """Checkout a revision.
+def switchToRevision(revision):
+    """Switch to a revision.
 
     Args:
-        revision (str): the revision to checkout (branch, tag, commit).
+        revision (str): the revision to switch to (branch, tag, commit).
     """
-    _runCmd(['git', 'checkout', str(revision)])
+    _runCmd(['git', 'switch', str(revision)])
 
 
 def bringFileFromRevision(filename, revision):
@@ -303,7 +303,7 @@ def bringFileFromRevision(filename, revision):
         filename (str): the path of the file to bring.
         revision (str): the revision where to retrieve it.
     """
-    _runCmd(['git', 'checkout', str(revision), '--', filename])
+    _runCmd(['git', 'restore', '--source' ,str(revision), filename])
 
 
 def createBranch(branch):
@@ -315,8 +315,8 @@ def createBranch(branch):
     _runCmd(['git', 'branch', branch])
 
 
-def createAndCheckoutOrphanBranch(branch):
-    """Create an orphan branch and check it out.
+def createAndSwitchToOrphanBranch(branch):
+    """Create an orphan branch and switch to it.
 
     Args:
         branch (str): the name of the branch to create

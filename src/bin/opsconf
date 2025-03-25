@@ -37,10 +37,11 @@ if __name__ == "__main__":
     parsers['init'] = subparsers.add_parser('init', help="initialize the local repository", parents=[commonParser])
     parsers['status'] = subparsers.add_parser('status', help="list the current version in given state (tag or branch)", parents=[commonParser])
     parsers['liststates'] = subparsers.add_parser('liststates', help="list the repository states", parents=[commonParser])
-    parsers['checkout'] = subparsers.add_parser('checkout', help="get to a given repository state", parents=[commonParser])
+    parsers['switch'] = subparsers.add_parser('switch', help="get to a given repository state", parents=[commonParser])
     parsers['tag'] = subparsers.add_parser('tag', help="label the current state of the whole repository", parents=[commonParser])
 
     parsers['toolbox'] = subparsers.add_parser('toolbox', help="scripts of the opsconf toolbox", parents=[commonParser])
+    parsers['checkout'] = subparsers.add_parser('checkout', help="[deprecated: use switch] get to a given repository state", parents=[commonParser])
 
     for command in parsers:
         module = getattr(opsconf.subcommand, command)

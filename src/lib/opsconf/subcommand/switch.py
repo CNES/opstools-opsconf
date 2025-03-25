@@ -1,11 +1,11 @@
-"""Module to define the subcommand checkout."""
+"""Module to define the subcommand switch."""
 
 import logging
 
 import opsconf
 from opsconf import libgit
 
-LOGGER = logging.getLogger('opsconf.checkout')
+LOGGER = logging.getLogger('opsconf.switch')
 
 
 def setupParser(parser):
@@ -17,8 +17,6 @@ def setupParser(parser):
     parser.description = "Change to given BRANCH or TAG"
     parser.add_argument('revision', metavar='BRANCH|TAG', help="the branch or tag to checkout")
 
-    parser.epilog = "DEPRECATED: use 'opsconf switch' instead"
-
 
 def runCmd(args):
     """Run the command of the current operation
@@ -26,8 +24,6 @@ def runCmd(args):
     Args:
         args (argparse.Namespace): the namespace returned by the parse_args() method
     """
-    LOGGER.warning("DEPRECATED: deprecated command. Use 'opsconf switch' instead")
-
     revision = args.revision
     libgit.switchToRevision(revision)
     opsconf.sync(libgit.getCurrentBranch())
