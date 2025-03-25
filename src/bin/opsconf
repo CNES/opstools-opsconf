@@ -16,7 +16,7 @@ LOGGER = logging.getLogger('opsconf')
 if __name__ == "__main__":
     commonParser = argparse.ArgumentParser(add_help=False)
     commonParser.add_argument('-v', '--verbose', help='add debug logs', action='store_true')
-    commonParser.add_argument('-vv', '--very-verbose', help='add debug logs also in git', action='store_true')
+    commonParser.add_argument('-vv', '-vvv', '--very-verbose', help='add debug logs also in git', action='store_true')
 
     parser = argparse.ArgumentParser(
         description="File-centric Version Control System. Thought for operational data.",
