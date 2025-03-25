@@ -2,7 +2,6 @@
 
 from . import (
     # standard commands
-    checkout,
     commit,
     diff,
     init,
@@ -12,9 +11,12 @@ from . import (
     remove,
     rollback,
     status,
+    switch,
     sync,
     tag,
     validate,
+    # deprecated commands
+    checkout,
     # other commands
     toolbox
     )

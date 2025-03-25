@@ -83,8 +83,8 @@ def initBranches(rootBranch=None):
         raise OpsconfFatalError(".opsconf file already exists. Aborting.")
 
     if rootBranch is not None:
-        libgit.checkoutRevision(rootBranch)
-        libgit.createAndCheckoutOrphanBranch(OPSCONF_BRANCH_WORK)
+        libgit.switchToRevision(rootBranch)
+        libgit.createAndSwitchToOrphanBranch(OPSCONF_BRANCH_WORK)
         for root, dirnames, filenames in os.walk('.', topdown=True):
             if '.git' in dirnames:
                 dirnames.remove('.git')
@@ -94,7 +94,7 @@ def initBranches(rootBranch=None):
                 libgit.addOneFile(filepath)
                 libgit.commitOneFile(filepath, "v1: First version for '{}'".format(filepath))
     else:
-        libgit.createAndCheckoutOrphanBranch(OPSCONF_BRANCH_WORK)
+        libgit.createAndSwitchToOrphanBranch(OPSCONF_BRANCH_WORK)
         readmeFile = "README.md"
         with open("{}/{}".format(libgit.getGitRoot(), readmeFile), 'w') as f:
             f.write("# Readme\n")
@@ -118,19 +118,19 @@ def initBranches(rootBranch=None):
         # if the branch exists
         if libgit.existLocalBranch(branch):
             LOGGER.debug("Changing to branch: %s", branch)
-            libgit.checkoutRevision(branch)
+            libgit.switchToRevision(branch)
             libgit.cherryPick(commitHash)
             libgit.push(branch)
             LOGGER.debug("Branch updated: %s", branch)
         else:
             LOGGER.debug("Creating branch: %s", branch)
-            libgit.createAndCheckoutOrphanBranch(branch)
+            libgit.createAndSwitchToOrphanBranch(branch)
             libgit.resetTree(hard=True)
             libgit.cherryPick(commitHash)
             libgit.push(branch, newBranch=True)
             LOGGER.debug("Branch created: %s", branch)
 
-    libgit.checkoutRevision(OPSCONF_BRANCH_WORK)
+    libgit.switchToRevision(OPSCONF_BRANCH_WORK)
 
 
 def isCurrentBranchWork():
@@ -814,12 +814,12 @@ def promoteVersion(targetBranch, filename, version=None, message=None):
             # We first need to move the git root of the repository, in case it does not exist
             # in the WORK branch
             os.chdir(gitRootDir)
-            libgit.checkoutRevision(targetBranch)
+            libgit.switchToRevision(targetBranch)
             LOGGER.debug("We changed to branch %s", targetBranch)
             lastHashAfterRetrieval = retrieveVersion(OPSCONF_BRANCH_WORK, filename, versionToPromote)
         finally:
             # Move back to where we were at the beginning
-            libgit.checkoutRevision(currentBranch)
+            libgit.switchToRevision(currentBranch)
             LOGGER.debug("We are back in branch %s", currentBranch)
             os.chdir(currentPath)
 
