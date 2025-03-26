@@ -22,6 +22,6 @@ test-job:
   image: artifactory.cnes.fr/laprod-images-docker/redhat/ubi8
   script:
     - rm /etc/yum.repos.d/ubi.repo
-    - yum install -y python36 pylint python3-coverage ShellCheck git diffutils > /dev/null
+    - yum install -y --nobest python36 pylint python3-coverage ShellCheck git diffutils > /dev/null
     - tests/run_tests.sh
 
