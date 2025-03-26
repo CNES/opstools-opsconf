@@ -13,6 +13,7 @@ import subprocess
 import sys
 
 import opsconf
+from opsconf import libgit
 
 
 format = '[%(levelname)s] %(message)s'
@@ -21,6 +22,10 @@ LOGGER = logging.getLogger('opsconf')
 
 if os.path.isfile('.githook/pre-commit'):
     subprocess.run('.githooks/pre-commit')
+
+# If current branch not in work, qualification, master, do not enforce the hook
+if libgit.getCurrentBranch() not in [opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_QUALIF, opsconf.OPSCONF_BRANCH_VALID]:
+    sys.exit(0)
 
 try:
     opsconf.checkBranchIsWork()

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 #
-# An example hook script to check the commit log message.
 # Called by "git commit" with one argument, the name of the file
 # that has the commit message.  The hook should exit with non-zero
 # status after issuing an appropriate message if it wants to stop the
 # commit.  The hook is allowed to edit the commit message file.
+#
+# This prepends the 'vXX: ' to the beginning of the commit message.
 #
 # OPSCONFVERSION=0.2.2
 
@@ -12,11 +13,15 @@ import logging
 import sys
 
 import opsconf
+from opsconf import libgit
 
 format = '[%(levelname)s] %(message)s'
 logging.basicConfig(format=format)
 LOGGER = logging.getLogger('opsconf')
 
+# If current branch not in work, qualification, master, do not enforce the hook
+if libgit.getCurrentBranch() not in [opsconf.OPSCONF_BRANCH_WORK, opsconf.OPSCONF_BRANCH_QUALIF, opsconf.OPSCONF_BRANCH_VALID]:
+    sys.exit(0)
 try:
     opsconf.prependFileVersion(sys.argv[1])
 except opsconf.OpsconfFatalError as e:
