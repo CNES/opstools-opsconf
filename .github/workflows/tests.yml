@@ -15,7 +15,7 @@ jobs:
       - name: install dependendencies
         run: sudo apt install -y shellcheck
       - name: setup python
-        uses: action/setup-python@v5
+        uses: actions/setup-python@v5
         with:
           python-version: '3.6'
           cache: 'pip'
