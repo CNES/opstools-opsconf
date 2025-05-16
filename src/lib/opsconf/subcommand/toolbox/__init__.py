@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2025 Olivier Churlaud <olivier@churlaud.com>
+# SPDX-FileCopyrightText: 2025 CNES
+#
+# SPDX-License-Identifier: MIT
+
 """Module to define the subcommand toolbox. Since we don't know the scripts from the toolbox,
 we need to do clever things to discover them on the run."""
 

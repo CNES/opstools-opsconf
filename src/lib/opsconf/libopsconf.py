@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2025 Olivier Churlaud <olivier@churlaud.com>
+# SPDX-FileCopyrightText: 2025 CNES
+#
+# SPDX-License-Identifier: MIT
+
 """Library for opsconf functions. This module relies on opsconf.libgit."""
 import logging
 import os

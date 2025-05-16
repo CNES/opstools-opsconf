@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2025 Olivier Churlaud <olivier@churlaud.com>
+# SPDX-FileCopyrightText: 2025 CNES
+#
+# SPDX-License-Identifier: MIT
+
 """Python wrapper around git operations that are usefull for opsconf"""
 
 import logging
