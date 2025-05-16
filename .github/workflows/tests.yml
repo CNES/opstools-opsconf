@@ -9,7 +9,7 @@ on:
 
 jobs:
   run-tests:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: install dependendencies
@@ -17,7 +17,7 @@ jobs:
       - name: setup python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.6'
+          python-version: '3.7'
           cache: 'pip'
       - run: pip install coverage pylint
       - run: ./tests/run_tests.sh
