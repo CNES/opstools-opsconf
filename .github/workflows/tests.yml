@@ -1,0 +1,25 @@
+name: tests
+on: 
+  pull_request:
+  push:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - '.pylintrc'
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@latest
+      - name: install dependendencies
+        run: sudo apt install -y shellcheck
+      - name: setup python
+        uses: action/setup-python@latest
+        with:
+          python-version: '3.6'
+          cache: 'pip'
+      - run: pip install coverage pylint
+      - run: ./tests/run_tests.sh
+    
+  
