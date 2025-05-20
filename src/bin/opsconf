@@ -34,6 +34,7 @@ if __name__ == "__main__":
     parsers['commit'] = subparsers.add_parser('commit', help="commit changes to a file", parents=[commonParser])
     parsers['log'] = subparsers.add_parser('log', help="show changelogs of a file", parents=[commonParser])
     parsers['diff'] = subparsers.add_parser('diff', help="show difference between two versions of a file", parents=[commonParser])
+    parsers['move'] = subparsers.add_parser('move', help="move a file or directory", parents=[commonParser])
     parsers['remove'] = subparsers.add_parser('remove', help="remove a file from the repository", parents=[commonParser])
     parsers['rollback'] = subparsers.add_parser('rollback', help="rollback a file to a given versions", parents=[commonParser])
     parsers['qualify'] = subparsers.add_parser('qualify', help="mark a file version as ready for qualification", parents=[commonParser])

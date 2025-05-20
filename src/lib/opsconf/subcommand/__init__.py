@@ -12,6 +12,7 @@ from . import (
     init,
     liststates,
     log,
+    move,
     qualify,
     remove,
     rollback,
