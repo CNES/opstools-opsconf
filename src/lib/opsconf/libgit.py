@@ -219,8 +219,8 @@ def getLocalBranchTip():
     Returns:
         str: the hash of the revision
     """
-    stdout, _, _ = _runCmd(['git', 'rev-parse', '@'])
-    return stdout
+    hashStr, _, _ = _runCmd(['git', 'rev-list', '-n', '1', 'HEAD'])
+    return hashStr
 
 
 def getRemoteBranchTip():
@@ -229,8 +229,12 @@ def getRemoteBranchTip():
     Returns:
         str: the hash of the revision
     """
-    stdout, _, _ = _runCmd(['git', 'rev-parse', '@{u}'])
-    return stdout
+    if isHeadABranch():
+        hashStr, _, _ = _runCmd(['git', 'rev-parse', '@{u}'])
+    else:
+        # we are on a tag or commit, so we get the *local* hash
+        hashStr, _, _ = _runCmd(['git', 'rev-list', '-n', '1', 'HEAD'])
+    return hashStr
 
 
 def getEmptyTreeObject():
@@ -301,13 +305,40 @@ def fetch(remote=None, branch=None):
     _runCmd(cmd)
 
 
+def isRevisionABranch(revision):
+    """Check if a revision is a branch.
+
+    Args:
+        revision (str): the revision to check.
+
+    Returns:
+        bool: True if the revision is a branch, False otherwise.
+    """
+    _, _, errno = _runCmd(['git', 'show-ref', '--verify', 'refs/heads/{}'.format(str(revision))], raiseException=False)
+    return errno == 0
+
+
+def isHeadABranch():
+    """Check if the head is a branch (if not, it's in a detached state)
+
+    Returns:
+        bool: True if it's a branch, False if we are in a detached state (tag, commit)
+    """
+    _, _, errno = _runCmd(['git', 'symbolic-ref', '-q', 'HEAD'], raiseException=False)
+    return errno == 0
+
+
 def switchToRevision(revision):
     """Switch to a revision.
 
     Args:
         revision (str): the revision to switch to (branch, tag, commit).
     """
-    _runCmd(['git', 'switch', str(revision)])
+
+    if isRevisionABranch(revision):
+        _runCmd(['git', 'switch', str(revision)])
+    else:
+        _runCmd(['git', 'switch', '--detach', str(revision)])
 
 
 def bringFileFromRevision(filename, revision):

@@ -788,6 +788,7 @@ def diffBetweenVersions(filename, version1=None, version2=None):
         raise OpsconfFatalError('File not found in revision {}: {}'.format(h1, filename))
 
     # If we output to a tty, we want colors. If the output is piped, we want plain text
+    # pylint: disable=simplifiable-if-statement
     if os.isatty(1):
         withColors = True
     else:
