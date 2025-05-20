@@ -11,7 +11,7 @@
 #
 # This pushes the changes to the default remote.
 #
-# OPSCONFVERSION=0.3.0
+# OPSCONFVERSION=0.4.0
 
 import logging
 import sys

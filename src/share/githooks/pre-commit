@@ -10,7 +10,7 @@
 # exit with non-zero status after issuing an appropriate message if
 # it wants to stop the commit.
 #
-# OPSCONFVERSION=0.3.0
+# OPSCONFVERSION=0.4.0
 
 import logging
 import os
