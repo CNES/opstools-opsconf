@@ -6,6 +6,7 @@
 """Python wrapper around git operations that are usefull for opsconf"""
 
 import logging
+import os.path
 import shlex
 import subprocess
 
@@ -150,21 +151,29 @@ def getCurrentBranch():
     return stdout
 
 
-def existFileInRevision(filename, revision):
+def existFileInRevision(filename, revision, absolutePath=False):
     """Check if the file exists in the revision (branch, tag, commit).
 
     Args:
         filename (str): the file path to search.
         revision (str): the revison (branch, tag, commit) where to search.
+        absolutePath (bool): whether the path is absolute (from the root of the repo) or
+            relative to the current directory.
 
     Returns:
         bool: True if the file was found. False otherwise.
     """
 
     gitrootdir = getGitRoot()
+    if absolutePath:
+        fullFilenamePath = filename
+    else:
+        relativeGitRootDir = os.path.relpath(gitrootdir)
+        fullFilenamePath = os.path.relpath(filename, relativeGitRootDir)
     stdout, _, _ = _runCmd(['git', 'ls-tree', '-r', '--name-only', '--full-name',
                             '{}'.format(revision), gitrootdir])
-    return filename in stdout.splitlines()
+    LOGGER.debug("looking for: %s", fullFilenamePath)
+    return fullFilenamePath in stdout.splitlines()
 
 
 def listChangedFiles():

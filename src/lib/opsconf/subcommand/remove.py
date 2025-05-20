@@ -6,6 +6,7 @@
 """Module to define the subcommand remove."""
 
 import logging
+import os
 
 import opsconf
 
@@ -18,9 +19,10 @@ def setupParser(parser):
     Args:
         parser (argparse.ArgumentParser): the parser to setup
     """
-    parser.description = "Remove file FILE with the justification REASON"
+    parser.description = "Remove file FILE or the files contained in the directory DIRECTORY with the justification REASON"
     parser.add_argument('-m', metavar='REASON', help="the reason for removal", required=True, dest="reason")
-    parser.add_argument('file', metavar='FILE', help="the file to remove")
+    parser.add_argument('-r', help="remove recursively", action='store_true', dest="recursive")
+    parser.add_argument('file', metavar='FILE', help="the file to remove (or directory if option '-r' is used)")
 
 
 def runCmd(args):
@@ -31,9 +33,30 @@ def runCmd(args):
     """
     filename = args.file
     reason = args.reason
+    recursive = args.recursive
 
-    answer = input("Are you sure you want to remove this file (y,N)\n> {}\n".format(filename))
-    if answer.lower() in ['y', 'yes']:
+    if os.path.islink(filename) or os.path.isfile(filename):
+        answer = input("Are you sure you want to remove this file (y,N)\n> {}\n".format(filename))
+        if answer.lower() not in ['y', 'yes']:
+            LOGGER.info("Aborted: nothing was done")
+            return
         opsconf.removeFile(filename, reason)
+        LOGGER.info("File removed: \"%s\"", filename)
+
+
+    elif os.path.isdir(filename):
+        if not recursive:
+            raise opsconf.OpsconfFatalError("Directory removal must be recursive. Use the '-r' option.")
+
+        answer = input("Are you sure you want to remove this folder and *all* its content? (y,N)\n> {}\n".format(filename))
+        if answer.lower() not in ['y', 'yes']:
+            LOGGER.info("Aborted: nothing was done")
+            return
+        for root, _, files in os.walk(filename, topdown=False):
+            for name in files:
+                subfilename = os.path.join(root, name)
+                opsconf.removeFile(subfilename, reason)
+                LOGGER.info("File removed: \"%s\"", subfilename)
+
     else:
-        LOGGER.info("Aborting...")
+        raise opsconf.OpsconfFatalError("I don't know what to do with this file: {}".format(filename))

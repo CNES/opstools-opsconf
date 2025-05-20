@@ -180,7 +180,7 @@ def isOpsConfRepo():
             libgit.existRemoteBranch(OPSCONF_BRANCH_VALID)):
         LOGGER.debug("I cannot be an opsconf repo: Missing branches")
         return False
-    if not libgit.existFileInRevision('.opsconf', OPSCONF_BRANCH_WORK):
+    if not libgit.existFileInRevision('.opsconf', OPSCONF_BRANCH_WORK, absolutePath=True):
         LOGGER.debug("I cannot be an opsconf repo: Missing .opsconf file")
         return False
     return True
@@ -742,8 +742,9 @@ def removeFile(filename, reason):
         reason (str): the reason of the deletion.
 
     Raises:
-        OpsconfFatalError: if the file cannot be found in the WORK branch, this exception is raised.
+        OpsconfFatalError: if the file cannot be found in the current branch, this exception is raised.
     """
+    checkBranchUpToDate()
     branch = libgit.getCurrentBranch()
     if not libgit.existFileInRevision(filename, branch):
         raise OpsconfFatalError("File not found in the branch {}: {}".format(branch, filename))
