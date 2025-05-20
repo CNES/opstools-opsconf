@@ -186,6 +186,18 @@ def isOpsConfRepo():
     return True
 
 
+def isExecutable(path):
+    """Check if the file at 'path' is executable.
+
+    Args:
+        path (str): the path to test
+
+    Returns:
+        bool: True if executable, else False
+    """
+    return os.access(path, os.X_OK)
+
+
 def hasUptodateHooks():
     """Check if the repository has up-to-date opsconf hooks.
 
@@ -198,6 +210,9 @@ def hasUptodateHooks():
         # If one hook from the share dir is not in the hooks
         if not os.path.isfile(deployedHook):
             return False
+        if not isExecutable(deployedHook):
+            LOGGER.error("The hooks are not executable. Maybe the partition is 'noexec'?")
+            return False
 
         # If it is there but with wrong version
         with open(deployedHook, 'r') as f:
@@ -206,6 +221,7 @@ def hasUptodateHooks():
             for line in f.readline():
                 if "OPSCONFVERSION" in line:
                     hookVersion = line.split('=')[1]
+                    break
 
         if hookVersion is not None and hookVersion != OPSCONFVERSION:
             # One issue is enough to say if it has to be updated or not
