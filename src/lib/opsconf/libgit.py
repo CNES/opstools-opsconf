@@ -569,7 +569,7 @@ def logLastOneFile(filename, revision='HEAD', pattern=None, outputFormat='%h %s'
         return logs[0]
 
 
-def diffOneFile(filename, fromRevision='HEAD', toRevision=None):
+def diffOneFile(filename, fromRevision='HEAD', toRevision=None, withColors=False):
     """Get the diff of a file between 2 revisions.
 
     Args:
@@ -586,7 +586,12 @@ def diffOneFile(filename, fromRevision='HEAD', toRevision=None):
     else:
         revision = "{}..{}".format(fromRevision, toRevision)
 
-    stdout, _, _ = _runCmd(['git', 'diff', revision, '--', filename], outputCleanup=False)
+    cmd = ['git', 'diff']
+    if withColors:
+        cmd += ['--color=always']
+    cmd += [revision, '--', filename]
+
+    stdout, _, _ = _runCmd(cmd, outputCleanup=False)
     return stdout
 
 

@@ -787,7 +787,13 @@ def diffBetweenVersions(filename, version1=None, version2=None):
     if not libgit.existFileInRevision(filename, h1):
         raise OpsconfFatalError('File not found in revision {}: {}'.format(h1, filename))
 
-    return libgit.diffOneFile(filename, h1, h2)
+    # If we output to a tty, we want colors. If the output is piped, we want plain text
+    if os.isatty(1):
+        withColors = True
+    else:
+        withColors = False
+
+    return libgit.diffOneFile(filename, h1, h2, withColors=withColors)
 
 
 def promoteVersion(targetBranch, filename, version=None, message=None):
