@@ -8,6 +8,7 @@
 import logging
 
 import opsconf
+import opsconf.subcommand.switch
 from opsconf import libgit
 
 LOGGER = logging.getLogger('opsconf.checkout')
@@ -19,9 +20,7 @@ def setupParser(parser):
     Args:
         parser (argparse.ArgumentParser): the parser to setup
     """
-    parser.description = "Change to given BRANCH or TAG"
-    parser.add_argument('revision', metavar='BRANCH|TAG', help="the branch or tag to checkout")
-
+    opsconf.subcommand.switch.setupParser(parser)
     parser.epilog = "DEPRECATED: use 'opsconf switch' instead"
 
 
@@ -33,7 +32,4 @@ def runCmd(args):
     """
     LOGGER.warning("DEPRECATED: deprecated command. Use 'opsconf switch' instead")
 
-    revision = args.revision
-    libgit.switchToRevision(revision)
-    opsconf.sync(libgit.getCurrentBranch())
-    LOGGER.info("You are now on branch %s", revision)
+    opsconf.subcommand.switch.runCmd(args)
