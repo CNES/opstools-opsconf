@@ -513,8 +513,10 @@ def retrieveVersion(sourceBranch, filename, version):
         lastHashBeforeRetrieval = libgit.logLastOneFile(filename, revisionRange, pattern=OPSCONF_PREFIX_PATTERN, outputFormat="%H")
 
     lastVersionSubject = libgit.logLastOneFile(filename, revisionRange, pattern=OPSCONF_PREFIX_PATTERN, outputFormat="%s")
+    lastVersion = getVersionFromCommitMsg(lastVersionSubject)
+
     try:
-        lastHashSource = libgit.logLastOneFile(filename, sourceBranchRevisionRange, pattern=lastVersionSubject, outputFormat="%H")
+        lastHashSource = libgit.logLastOneFile(filename, sourceBranchRevisionRange, pattern="^v{}: ".format(lastVersion), outputFormat="%H")
         versionHashSource = libgit.logLastOneFile(filename, sourceBranchRevisionRange, pattern="^v{}: ".format(version), outputFormat="%H")
     except libgit.GitNoLogError:
         raise OpsconfFatalError("v{} of {} does not exist in branch {}".format(version, filename, sourceBranch))
