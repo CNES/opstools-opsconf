@@ -48,7 +48,11 @@ log_debug() {
 }
 
 log_info() {
-    echo "[DEBUG] $*"
+    echo "[INFO] $*"
+}
+
+log_warning() {
+    echo "[WARNING] $*"
 }
 
 log_error() {

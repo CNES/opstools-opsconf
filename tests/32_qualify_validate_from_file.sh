@@ -25,30 +25,31 @@ done
 
 for operation in "validate" "qualify" ; do
     cmd="${operation}FromFile"
-    log_test "$cmd: Dry-run works from stdin"
-    # the grep -v ;0; removes the new files
-    if OPSCONF_BIN status --to-csv | grep -v ';0;' | OPSCONF_BIN toolbox $cmd --dry-run 2> /dev/null ; then
+
+    log_test "$cmd: Dry-run fails if the input is wrong from stdin"
+    if ! OPSCONF_BIN status --to-csv | grep -v ';0;' | grep -e "${CURRENT_TEST}/file" -e 'filename;version;' | sed 's/;1;/;23;/' | OPSCONF_BIN toolbox $cmd --dry-run 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
-    log_test "$cmd: Dry-run fails if the input is wrong from stdin"
-    if ! OPSCONF_BIN status --to-csv | grep -v ';0;' | sed 's/;1;/;23;/' | OPSCONF_BIN toolbox $cmd --dry-run 2> /dev/null ; then
+    log_test "$cmd: Dry-run works from stdin (promote only v1)"
+    # the grep -v ;0; removes the new files
+    if OPSCONF_BIN status --to-csv | grep -v ';0;' | grep -e "${CURRENT_TEST}/file" -e 'filename;version;' | sed 's/;[[:digit:]];/;1;/' | OPSCONF_BIN toolbox $cmd --dry-run 2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
     log_test "$cmd: Operation succeeds from the stdin (promote only v1)"
-    if OPSCONF_BIN status --to-csv | grep -v ';0;' | sed 's/;[[:digit:]];/;1;/' | OPSCONF_BIN toolbox $cmd 2> /dev/null ; then
+    if OPSCONF_BIN status --to-csv | grep -v ';0;' | grep -e "${CURRENT_TEST}/file" -e 'filename;version;' | sed 's/;[[:digit:]];/;1;/' | OPSCONF_BIN toolbox $cmd  2> /dev/null ; then
         log_result "OK"
     else
         log_result "KO"
     fi
 
     log_test "$cmd: Dry-run works from a file"
-    OPSCONF_BIN status --to-csv | grep -v ';0;' > "$INPUTFILE"
+    OPSCONF_BIN status --to-csv | grep -v ';0;' | grep -e "${CURRENT_TEST}/file" -e 'filename;version;' > "$INPUTFILE"
     if OPSCONF_BIN toolbox $cmd --dry-run "$INPUTFILE" 2> /dev/null ; then
         log_result "OK"
     else
@@ -79,7 +80,7 @@ for operation in "validate" "qualify" ; do
     fi
     MESSAGE="VALIDATION MESSAGE"
     log_test "$cmd: Promotion is correctly stored on newly promoted version"
-    OPSCONF_BIN status --to-csv | grep -v ';0;' | OPSCONF_BIN toolbox "$cmd" -m "$MESSAGE" 2> /dev/null
+    OPSCONF_BIN status --to-csv | grep -v ';0;' | grep -e "${CURRENT_TEST}/file" -e 'filename;version;' | OPSCONF_BIN toolbox "$cmd" -m "$MESSAGE" 2> /dev/null
     OPSCONF_BIN checkout  "$branch" 2> /dev/null
     if [ "$(OPSCONF_BIN status --with-notes | grep -c "$MESSAGE")" -eq 3 ] ; then
         log_result "OK"
