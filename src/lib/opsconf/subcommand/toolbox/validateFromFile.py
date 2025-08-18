@@ -50,12 +50,22 @@ def runCmd(args):
             filename = fileVersion['filename']
             version = int(fileVersion['version'])
             allVersionsFromFile = opsconf.listAllVersions(filename)
+            latestVersionInWork = allVersionsFromFile[0]['version']
+            if libgit.existFileInRevision(filename, opsconf.OPSCONF_BRANCH_VALID):
+                allVersionsFromFileInBranch = opsconf.listAvailableVersions(opsconf.OPSCONF_BRANCH_VALID, filename)
+                latestVersionInBranch = allVersionsFromFileInBranch[0]['version']
+            else:
+                latestVersionInBranch = 0
             if len(allVersionsFromFile) == 0:
                 logging.error("Dry-run: Would fail: %s not found in %s.", filename, opsconf.OPSCONF_BRANCH_WORK)
                 errorNb +=1
-            elif allVersionsFromFile[0]['version'] < version:
+            elif latestVersionInWork < version:
                 logging.error("Dry-run: Would fail: %s, v%d not found in %s (max version=v%d).",
-                              filename, version, opsconf.OPSCONF_BRANCH_WORK, allVersionsFromFile[0]['version'])
+                              filename, version, opsconf.OPSCONF_BRANCH_WORK, latestVersionInWork)
+                errorNb +=1
+            elif version < latestVersionInBranch:
+                logging.error("Dry-run: Would fail: %s, v%d is smaller than current version v%d.",
+                              filename, version, latestVersionInBranch)
                 errorNb +=1
             else:
                 logging.info("Dry-run: Would validate %s in v%d.", filename, version)

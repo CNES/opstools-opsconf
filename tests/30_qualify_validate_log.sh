@@ -125,4 +125,24 @@ for branch in "qualification" "master" ; do
 
 done
 
+log_test "Special characters are ok in commit msgs (last version)"
+touch "${FILE}_special"
+OPSCONF_BIN commit -m "Create strange commmit *!?[12](ab)\\d^\$d" "${FILE}_special" &> /dev/null
+if OPSCONF_BIN validate "${FILE}_special" 1 ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+
+log_test "Special characters are ok in commit msgs (previous version)"
+echo 2 > "${FILE}_special"
+OPSCONF_BIN commit -m "Create another strange commmit *!?[12](ab)\\d^\$d" "${FILE}_special" &> /dev/null
+echo 1 > "${FILE}_special"
+OPSCONF_BIN commit -m "Create another strange commmit (again!!) *!?[12](ab)\\d^\$d" "${FILE}_special" &> /dev/null
+if OPSCONF_BIN validate "${FILE}_special" 2 ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+
 popd > /dev/null

@@ -513,8 +513,10 @@ def retrieveVersion(sourceBranch, filename, version):
         lastHashBeforeRetrieval = libgit.logLastOneFile(filename, revisionRange, pattern=OPSCONF_PREFIX_PATTERN, outputFormat="%H")
 
     lastVersionSubject = libgit.logLastOneFile(filename, revisionRange, pattern=OPSCONF_PREFIX_PATTERN, outputFormat="%s")
+    lastVersion = getVersionFromCommitMsg(lastVersionSubject)
+
     try:
-        lastHashSource = libgit.logLastOneFile(filename, sourceBranchRevisionRange, pattern=lastVersionSubject, outputFormat="%H")
+        lastHashSource = libgit.logLastOneFile(filename, sourceBranchRevisionRange, pattern="^v{}: ".format(lastVersion), outputFormat="%H")
         versionHashSource = libgit.logLastOneFile(filename, sourceBranchRevisionRange, pattern="^v{}: ".format(version), outputFormat="%H")
     except libgit.GitNoLogError:
         raise OpsconfFatalError("v{} of {} does not exist in branch {}".format(version, filename, sourceBranch))
@@ -580,7 +582,7 @@ def rollbackToVersion(filename, version, reason):
     libgit.commitOneFile(filename, message="{}\n\nRolled-back to v{}".format(reason, version))
 
 
-def listAvailaibleVersions(branch, filename):
+def listAvailableVersions(branch, filename):
     """List all the versions of a file in a given branch.
 
     Args:
@@ -640,7 +642,7 @@ def listAllVersions(filename):
         list of dict: the versions as: {'version': <int>, 'subject': <str>, 'tags': <list of str>}.
     """
     branch = OPSCONF_BRANCH_WORK
-    return listAvailaibleVersions(branch, filename)
+    return listAvailableVersions(branch, filename)
 
 
 def listCurrentVersions(filename):
@@ -656,7 +658,7 @@ def listCurrentVersions(filename):
         list of dict: the versions as: {'version': <int>, 'subject': <str>, 'tags': <list of str>}.
     """
     branch = libgit.getCurrentBranch()
-    return listAvailaibleVersions(branch, filename)
+    return listAvailableVersions(branch, filename)
 
 
 def showCurrentVersions(revision, withNotes=False):
