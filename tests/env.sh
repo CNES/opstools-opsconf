@@ -25,6 +25,16 @@ else
     }
 fi
 
+if [ -t 1 ] ; then
+    RED='\033[01;31m'
+    GREEN='\033[01;32m'
+    NC='\033[0m'
+else
+    RED=''
+    GREEN=''
+    NC=''
+fi
+
 lorem_ipsum() {
     nb_lines=50
     base64 /dev/urandom | awk '{print(0==NR%10)?"":$nb_lines}' | sed 's/[^[:alpha:]]/ /g' | sed 's/ \+$//' | head -"$nb_lines"
@@ -47,6 +57,10 @@ log_debug() {
     echo "[DEBUG] $*"
 }
 
+log_warning() {
+    echo "[WARNING] $*"
+}
+
 log_info() {
     echo "[INFO] $*"
 }
@@ -64,7 +78,14 @@ log_test() {
 }
 
 log_result() {
-    echo "[RESULT] $*" | tee -a "${TESTS_RESULTS}"
+    if [ "$1" = "KO" ] ; then
+        COLOR="${RED}"
+    elif [ "$1" == "OK" ] ; then
+        COLOR="${GREEN}"
+    else
+        COLOR=""
+    fi
+    echo -e "${COLOR}[RESULT] $*${NC}" | tee -a "${TESTS_RESULTS}"
 }
 
 log_synthesis() {
@@ -79,7 +100,7 @@ log_synthesis() {
         errno=0
     fi
     echo "[SYNTHESIS] TESTS STATUS: $status" | tee -a "${TESTS_RESULTS}"
-    echo "[SYNTHESIS] OK: $nb_ok / $nb_tests ; KO: $nb_ko / $nb_tests" | tee -a "${TESTS_RESULTS}"
+    echo -e "[SYNTHESIS] ${GREEN}OK: $nb_ok / $nb_tests${NC} ; ${RED}KO: $nb_ko / $nb_tests${NC}" | tee -a "${TESTS_RESULTS}"
     return $errno
 }
 
