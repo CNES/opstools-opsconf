@@ -66,3 +66,6 @@ def runCmd(args):
         statInfo = os.stat(destinationFile)
         os.chmod(destinationFile, statInfo.st_mode | stat.S_IXUSR | stat.S_IXGRP)
     LOGGER.info("Hooks updated")
+    LOGGER.info("Synchronizing all mandatory branches")
+    opsconf.syncOtherBranches()
+    LOGGER.info("All mandatory branches synchronized")

@@ -284,8 +284,22 @@ def initRepository():
     _runCmd(['git', 'init'])
 
 
+def fetchToLocal(remote, srcBranch, dstBranch):
+    """Fetch the distant branches into the local one.
+
+    Args:
+        remote (str): the remote to fetch.
+        srcBranch (str): the remote branch to fetch.
+        dstBranch (str): the local branch to update.
+
+    """
+    cmd = ['git', 'fetch', remote, "{}:{}".format(srcBranch, dstBranch)]
+
+    _runCmd(cmd)
+
+
 def fetch(remote=None, branch=None):
-    """Fetch the distant repositories
+    """Fetch the distant repositories.
 
     Args:
         remote (str, optional): the remote to fetch. Defaults to None.

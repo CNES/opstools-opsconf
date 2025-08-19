@@ -427,7 +427,7 @@ def sync(localBranch, remote='origin'):
 
     LOGGER.debug("Comparing %s and %s", remoteBranch, localBranch)
     if libgit.getLocalBranchTip() == libgit.getRemoteBranchTip():
-        LOGGER.debug("Local and remote branch are in sync")
+        LOGGER.info("Local and remote branch are in sync")
     elif libgit.isAncestor(remoteBranch, ancestor=localBranch):
         LOGGER.info("Local is behind the remote repository")
         libgit.merge(remoteBranch, ffOnly=True)
@@ -438,6 +438,19 @@ def sync(localBranch, remote='origin'):
         LOGGER.info("Remote was updated")
     else:
         raise OpsconfFatalError("Local and remote branches have diverged. Call an expert !")
+    LOGGER.info("Update the other branches")
+    syncOtherBranches()
+
+
+def syncOtherBranches():
+    """Update the other branches than the current one.
+    """
+    currentBranch = libgit.getCurrentBranch()
+    for branch in [OPSCONF_BRANCH_WORK, OPSCONF_BRANCH_QUALIF, OPSCONF_BRANCH_VALID]:
+        if branch == currentBranch:
+            continue
+        LOGGER.debug("Update branch %s" % branch)
+        libgit.fetchToLocal(remote='origin', srcBranch=branch, dstBranch=branch)
 
 
 def doPush():
@@ -679,6 +692,7 @@ def showCurrentVersions(revision, withNotes=False):
                             'notes': <list of str>  # The list of notes associated to the version
                         }.
     """
+    syncOtherBranches()
     changedFileList = libgit.listChangedFiles()
     fileList = libgit.listAllFilesInRevision(revision)
     fileVersionList = []
@@ -815,6 +829,8 @@ def promoteVersion(targetBranch, filename, version=None, message=None):
         OpsconfFatalError: if the function is called from a branch different from targetBranch or WORK,
                            this exception is raised.
     """
+    syncOtherBranches()
+
     # If version is not given, get the last version from the WORK branch
     if version is None:
         lastCommitMsg = libgit.logLastOneFile(filename, OPSCONF_BRANCH_WORK,
