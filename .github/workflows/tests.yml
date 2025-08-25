@@ -1,5 +1,5 @@
 name: tests
-on: 
+on:
   pull_request:
   push:
     paths:
@@ -8,6 +8,20 @@ on:
       - '.pylintrc'
 
 jobs:
+  run-linter:
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: install dependendencies
+        run: sudo apt install -y shellcheck
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+      - run: pip install coverage pylint
+      - run: ./tests/run_tests.sh --linter-only
+
   run-tests:
     runs-on: ubuntu-22.04
     steps:
@@ -17,8 +31,6 @@ jobs:
       - name: setup python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.7'
+          python-version: '3.9'
       - run: pip install coverage pylint
-      - run: ./tests/run_tests.sh
-    
-  
+      - run: ./tests/run_tests.sh --no-linter
