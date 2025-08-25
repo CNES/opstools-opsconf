@@ -914,8 +914,8 @@ def restoreFile(filename, version=None):
         raise OpsconfFatalError("%s is not a file" % filename)
 
     if os.path.isfile(filename):
-         restoredFilename = filename + ".restored"
-         shutil.copy2(filename, restoredFilename)
+        restoredFilename = filename + ".restored"
+        shutil.copy2(filename, restoredFilename)
     else:
         restoredFilename = None
 
@@ -929,5 +929,3 @@ def restoreFile(filename, version=None):
         logging.info("Its previous content was saved in %s." % restoredFilename)
     else:
         logging.info("The file was not existing: no backup was done.")
-
-
