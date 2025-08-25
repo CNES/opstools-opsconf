@@ -37,6 +37,7 @@ if __name__ == "__main__":
     parsers['move'] = subparsers.add_parser('move', help="move a file or directory", parents=[commonParser])
     parsers['remove'] = subparsers.add_parser('remove', help="remove a file from the repository", parents=[commonParser])
     parsers['rollback'] = subparsers.add_parser('rollback', help="rollback a file to a given versions", parents=[commonParser])
+    parsers['restore'] = subparsers.add_parser('restore', help="restore the content of a file to a given versions", parents=[commonParser])
     parsers['qualify'] = subparsers.add_parser('qualify', help="mark a file version as ready for qualification", parents=[commonParser])
     parsers['validate'] = subparsers.add_parser('validate', help="mark a file version as validated of production use", parents=[commonParser])
 

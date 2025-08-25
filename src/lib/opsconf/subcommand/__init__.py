@@ -15,6 +15,7 @@ from . import (
     move,
     qualify,
     remove,
+    restore,
     rollback,
     status,
     switch,

@@ -6,6 +6,7 @@
 """Library for opsconf functions. This module relies on opsconf.libgit."""
 import logging
 import os
+import shutil
 
 from . import libgit
 
@@ -882,3 +883,51 @@ def promoteVersion(targetBranch, filename, version=None, message=None):
     if lastHashAfterRetrieval is not None and message is not None:
         libgit.addNoteToCommit(lastHashAfterRetrieval, message, topic=OPSCONF_PROMOTION_NOTE_TOPIC)
         libgit.pushNotes(topic=OPSCONF_PROMOTION_NOTE_TOPIC)
+
+
+def restoreFile(filename, version=None):
+    """Restore the file <filename> to its state at the version <version>.
+
+    The current content of the file is stored in a file called <filename.restored>
+
+    Args:
+        filename (str): the path of the file of interest.
+        version (int, optional): the version to promote. Defaults to None. In this case,
+                                 the last version from the current branch is restored.
+    """
+    if version is None:
+        try:
+            commitHash = libgit.logLastOneFile(filename, libgit.getCurrentBranch(),
+                                               pattern=OPSCONF_PREFIX_PATTERN,
+                                               outputFormat="%h")
+        except libgit.GitNoLogError:
+            raise OpsconfFatalError("This file was not found in the current branch: %s" % filename)
+    else:
+        try:
+            commitHash = libgit.logLastOneFile(filename, libgit.getCurrentBranch(),
+                                               pattern="^v{}:".format(version),
+                                               outputFormat="%h")
+        except libgit.GitNoLogError:
+            raise OpsconfFatalError("This file was not found in version %d in the current branch: %s" % (version, filename))
+
+    if not libgit.existFileInRevision(filename, commitHash):
+        raise OpsconfFatalError("%s is not a file" % filename)
+
+    if os.path.isfile(filename):
+         restoredFilename = filename + ".restored"
+         shutil.copy2(filename, restoredFilename)
+    else:
+        restoredFilename = None
+
+    libgit.bringFileFromRevision(filename, commitHash)
+
+    if version is None:
+        logging.info("File restored to its latest version: %s" % filename)
+    else:
+        logging.info("File restored to its version %d: %s" % (version, filename))
+    if restoredFilename:
+        logging.info("Its previous content was saved in %s." % restoredFilename)
+    else:
+        logging.info("The file was not existing: no backup was done.")
+
+
