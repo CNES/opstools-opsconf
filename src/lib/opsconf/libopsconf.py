@@ -10,7 +10,7 @@ import shutil
 
 from . import libgit
 
-OPSCONFVERSION = "0.5.0"
+OPSCONFVERSION = "0.5.1"
 
 OPSCONF_BRANCH_WORK = "work"
 OPSCONF_BRANCH_QUALIF = "qualification"
