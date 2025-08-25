@@ -284,7 +284,7 @@ def initRepository():
     _runCmd(['git', 'init'])
 
 
-def fetchToLocal(remote, srcBranch, dstBranch):
+def fetchToLocal(remote, srcBranch, dstBranch, setUpstream=False):
     """Fetch the distant branches into the local one.
 
     Args:
@@ -294,8 +294,10 @@ def fetchToLocal(remote, srcBranch, dstBranch):
 
     """
     cmd = ['git', 'fetch', remote, "{}:{}".format(srcBranch, dstBranch)]
-
     _runCmd(cmd)
+    if setUpstream:
+        cmd = ['git', 'branch', '--set-upstream-to', '{}/{}'.format(remote,srcBranch), dstBranch]
+        _runCmd(cmd)
 
 
 def fetch(remote=None, branch=None):

@@ -445,15 +445,19 @@ def sync(localBranch, remote='origin'):
     syncOtherBranches()
 
 
-def syncOtherBranches():
+def syncOtherBranches(setUpstream=False):
     """Update the other branches than the current one.
+
+    Args:
+        setUpstream (bool, optional): weather to set the upstream branch while syncing or not.
+                                      Defaults to False.
     """
     currentBranch = libgit.getCurrentBranch()
     for branch in [OPSCONF_BRANCH_WORK, OPSCONF_BRANCH_QUALIF, OPSCONF_BRANCH_VALID]:
         if branch == currentBranch:
             continue
         LOGGER.debug("Update branch %s" % branch)
-        libgit.fetchToLocal(remote='origin', srcBranch=branch, dstBranch=branch)
+        libgit.fetchToLocal(remote='origin', srcBranch=branch, dstBranch=branch, setUpstream=setUpstream)
 
 
 def doPush():
