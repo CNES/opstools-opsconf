@@ -12,7 +12,7 @@
 #
 # This prepends the 'vXX: ' to the beginning of the commit message.
 #
-# OPSCONFVERSION=0.4.0
+# OPSCONFVERSION=0.5.0
 
 import logging
 import sys
