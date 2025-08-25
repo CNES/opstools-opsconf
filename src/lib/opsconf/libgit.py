@@ -294,7 +294,8 @@ def fetchToLocal(remote, srcBranch, dstBranch):
 
     """
     cmd = ['git', 'fetch', remote, "{}:{}".format(srcBranch, dstBranch)]
-
+    _runCmd(cmd)
+    cmd = ['git', 'branch', '--set-upstream-to', '{}/{}'.format(remote,srcBranch), dstBranch]
     _runCmd(cmd)
 
 
