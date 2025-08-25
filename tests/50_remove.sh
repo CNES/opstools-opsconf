@@ -97,8 +97,36 @@ fi
 
 log_test "It is possible to validate a file that was removed then recreated"
 OPSCONF_BIN checkout master
-OPSCONF_BIN validate "$FILE" v3
+OPSCONF_BIN validate "$FILE" v3 &> /dev/null
 if [ "$(OPSCONF_BIN log $FILE | wc -l)" -eq 3 ] ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+
+OPSCONF_BIN switch work
+mkdir "${CURRENT_TEST}/dir1"
+for k in {1..3} ; do
+    lorem_ipsum > "${CURRENT_TEST}/dir1/${k}"
+    OPSCONF_BIN commit -m "create file dir1/${k}" "${CURRENT_TEST}/dir1/${k}" &> /dev/null
+done
+
+log_test "Remove recursively doesn't work without '-r'"
+if ! yes | OPSCONF_BIN remove -m "Removed" "${CURRENT_TEST}/dir1" ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+
+log_test "Remove recursively works with '-r'"
+if yes | OPSCONF_BIN remove -r -m "Removed" "${CURRENT_TEST}/dir1" ; then
+    log_result "OK"
+else
+    log_result "KO"
+fi
+
+log_test "Directory was removed"
+if [ ! -d "${CURRENT_TEST}/dir1" ] ; then
     log_result "OK"
 else
     log_result "KO"

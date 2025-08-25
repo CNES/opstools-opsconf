@@ -180,6 +180,8 @@ def isOpsConfRepo():
             libgit.existRemoteBranch(OPSCONF_BRANCH_VALID)):
         LOGGER.debug("I cannot be an opsconf repo: Missing branches")
         return False
+    # Synchronize the other branches
+    syncOtherBranches()
     if not libgit.existFileInRevision('.opsconf', OPSCONF_BRANCH_WORK, absolutePath=True):
         LOGGER.debug("I cannot be an opsconf repo: Missing .opsconf file")
         return False
