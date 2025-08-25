@@ -13,9 +13,32 @@ workflow:
     - if: $CI_COMMIT_BRANCH
 
 stages:
+  - lint
   - test
+  - build
 
-test-job:
+lint-py36:
+  stage: lint
+  tags:
+    - Usine_Logicielle_Podman
+  image: artifactory.cnes.fr/laprod-images-docker/redhat/ubi8
+  script:
+    - rm /etc/yum.repos.d/ubi.repo
+    - yum install -y --nobest python36 pylint ShellCheck git > /dev/null
+    - tests/run_tests.sh --linter-only
+  allow_failure: True
+
+lint-py39:
+  stage: lint
+  tags:
+    - Usine_Logicielle_Podman
+  image: artifactory.cnes.fr/laprod-images-docker/laprod/ubi9-python39-node18
+  script:
+    - microdnf install -y --nobest python39 pylint python3-coverage ShellCheck git > /dev/null
+    - tests/run_tests.sh --linter-only
+  allow_failure: True
+
+test-py36:
   stage: test
   tags:
     - Usine_Logicielle_Podman
@@ -23,5 +46,40 @@ test-job:
   script:
     - rm /etc/yum.repos.d/ubi.repo
     - yum install -y --nobest python36 pylint python3-coverage ShellCheck git diffutils > /dev/null
-    - tests/run_tests.sh
+    - tests/run_tests.sh --no-linter
 
+test-py39:
+  stage: test
+  tags:
+    - Usine_Logicielle_Podman
+  image: artifactory.cnes.fr/laprod-images-docker/laprod/ubi9-python39-node18
+  script:
+    - microdnf install -y --nobest python39 pylint python3-coverage ShellCheck git diffutils > /dev/null
+    - tests/run_tests.sh --no-linter
+
+build-py36:
+  stage: build
+  tags:
+    - Usine_Logicielle_Podman
+  image: artifactory.cnes.fr/laprod-images-docker/redhat/ubi8
+  script:
+    - rm /etc/yum.repos.d/ubi.repo
+    - yum install -y --nobest python36 rpm-build git > /dev/null
+    - ./makeRPM.sh
+  variables:
+    PYTHON_VERSION: python3.6
+  needs:
+    - test-py36
+
+build-py39:
+  stage: build
+  tags:
+    - Usine_Logicielle_Podman
+  image: artifactory.cnes.fr/laprod-images-docker/laprod/ubi9-python39-node18
+  script:
+    - microdnf install -y --nobest python39 rpm-build git > /dev/null
+    - ./makeRPM.sh
+  variables:
+    PYTHON_VERSION: python3.9
+  needs:
+    - test-py39

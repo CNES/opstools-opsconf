@@ -28,10 +28,12 @@ fi
 if [ -t 1 ] ; then
     RED='\033[01;31m'
     GREEN='\033[01;32m'
+    YELLOW='\033[01;33m'
     NC='\033[0m'
 else
     RED=''
     GREEN=''
+    YELLOW=''
     NC=''
 fi
 
@@ -53,12 +55,12 @@ file_content_in_rev() {
     git show "$rev:$file"
 }
 
-log_debug() {
-    echo "[DEBUG] $*"
+title() {
+    echo -e "${YELLOW}::: $* :::${NC}"
 }
 
-log_warning() {
-    echo "[WARNING] $*"
+log_debug() {
+    echo "[DEBUG] $*"
 }
 
 log_info() {
